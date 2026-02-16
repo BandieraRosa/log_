@@ -64,8 +64,48 @@ target_compile_definitions(br_logger_core PUBLIC
     BR_LOG_BUILD_TYPE="${CMAKE_BUILD_TYPE}"
 )
 
+# Install rules
+include(GNUInstallDirs)
+
+install(TARGETS br_logger_core
+    EXPORT br_logger_core-targets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+install(DIRECTORY include/br_logger
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(EXPORT br_logger_core-targets
+    FILE br_logger_core-targets.cmake
+    NAMESPACE br_logger::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/br_logger_core
+)
+
+# Config file for find_package()
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/br_logger_core-config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/br_logger_core-config.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/br_logger_core
+)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/br_logger_core-config-version.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/br_logger_core-config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/br_logger_core-config-version.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/br_logger_core
+)
+
 # Tests
 if(BR_LOG_BUILD_TESTS)
-    enable_testing()
     add_subdirectory(tests)
 endif()

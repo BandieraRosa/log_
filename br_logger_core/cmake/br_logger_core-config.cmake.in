@@ -1,0 +1,13 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+find_dependency(Threads)
+
+if(@BR_LOG_USE_FMTLIB@)
+    find_dependency(fmt)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/br_logger_core-targets.cmake")
+
+check_required_components(br_logger_core)
