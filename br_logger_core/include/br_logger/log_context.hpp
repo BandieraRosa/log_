@@ -60,7 +60,10 @@ class LogContext
 };
 // NOLINTEND(readability-identifier-naming)
 
-#define LOG_SCOPED_TAG(key, value) \
-  ::br_logger::LogContext::ScopedTag _hpc_scoped_tag_##__LINE__(key, value)
+#define BR_LOG_CONCAT_IMPL_(a, b) a##b
+#define BR_LOG_CONCAT_(a, b) BR_LOG_CONCAT_IMPL_(a, b)
+#define LOG_SCOPED_TAG(key, value)                                                     \
+  ::br_logger::LogContext::ScopedTag BR_LOG_CONCAT_(_br_scoped_tag_, __COUNTER__)(key, \
+                                                                                  value)
 
 }  // namespace br_logger

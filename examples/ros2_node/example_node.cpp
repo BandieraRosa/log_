@@ -32,7 +32,7 @@ class ExampleNode : public rclcpp::Node
   ~ExampleNode() override { br_logger::ros2::shutdown(); }
 
  private:
-  void OnChatter(const std_msgs::msg::String::SharedPtr msg)
+  void OnChatter(const std::shared_ptr<const std_msgs::msg::String>& msg)
   {
     LOG_SUB_CALLBACK("/chatter");
     LOG_DEBUG("received: %s", msg->data.c_str());

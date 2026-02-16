@@ -1,6 +1,7 @@
 #pragma once
 #include <atomic>
-#include <cstdio>  // snprintf fallback
+#include <cstdio>
+#include <cstring>
 #include <memory>
 
 #include "backend.hpp"
@@ -89,8 +90,19 @@ void Logger::LogImpl(LogLevel level, const SourceLocation& loc, const char* fmt,
   entry.msg_len = static_cast<uint16_t>(result.size);
   entry.msg[entry.msg_len] = '\0';
 #else
-  int written = std::snprintf(entry.msg, BR_LOG_MAX_MSG_LEN, fmt, args...);
-  entry.msg_len = (written > 0) ? static_cast<uint16_t>(written) : 0;
+  if constexpr (sizeof...(args) == 0)
+  {
+    std::size_t len = std::strlen(fmt);
+    if (len >= BR_LOG_MAX_MSG_LEN) len = BR_LOG_MAX_MSG_LEN - 1;
+    std::memcpy(entry.msg, fmt, len);
+    entry.msg[len] = '\0';
+    entry.msg_len = static_cast<uint16_t>(len);
+  }
+  else
+  {
+    int written = std::snprintf(entry.msg, BR_LOG_MAX_MSG_LEN, fmt, args...);
+    entry.msg_len = (written > 0) ? static_cast<uint16_t>(written) : 0;
+  }
 #endif
 
   // 7. Enqueue

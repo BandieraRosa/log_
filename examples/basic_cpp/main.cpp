@@ -5,7 +5,6 @@
 #include <br_logger/sinks/callback_sink.hpp>
 #include <br_logger/sinks/console_sink.hpp>
 #include <br_logger/sinks/rotating_file_sink.hpp>
-#include <chrono>
 #include <cstdio>
 #include <thread>
 

@@ -77,31 +77,31 @@ logger.DropCount();                // 查询丢弃计数
 
 ### 日志宏
 
-| 宏 | 用法 |
-|----|------|
-| `LOG_TRACE(fmt, ...)` | 最低级别，可被编译期移除 |
-| `LOG_DEBUG(fmt, ...)` | 调试信息 |
-| `LOG_INFO(fmt, ...)` | 常规信息 |
-| `LOG_WARN(fmt, ...)` | 警告 |
-| `LOG_ERROR(fmt, ...)` | 错误 |
-| `LOG_FATAL(fmt, ...)` | 致命错误 |
-| `LOG_INFO_IF(cond, fmt, ...)` | 条件日志 |
-| `LOG_WARN_IF(cond, fmt, ...)` | 条件日志 |
-| `LOG_ERROR_IF(cond, fmt, ...)` | 条件日志 |
-| `LOG_EVERY_N(lvl, n, fmt, ...)` | 每 N 次记录一条 |
-| `LOG_ONCE(lvl, fmt, ...)` | 只记录一次 |
+| 宏                              | 用法                     |
+| ------------------------------- | ------------------------ |
+| `LOG_TRACE(fmt, ...)`           | 最低级别，可被编译期移除 |
+| `LOG_DEBUG(fmt, ...)`           | 调试信息                 |
+| `LOG_INFO(fmt, ...)`            | 常规信息                 |
+| `LOG_WARN(fmt, ...)`            | 警告                     |
+| `LOG_ERROR(fmt, ...)`           | 错误                     |
+| `LOG_FATAL(fmt, ...)`           | 致命错误                 |
+| `LOG_INFO_IF(cond, fmt, ...)`   | 条件日志                 |
+| `LOG_WARN_IF(cond, fmt, ...)`   | 条件日志                 |
+| `LOG_ERROR_IF(cond, fmt, ...)`  | 条件日志                 |
+| `LOG_EVERY_N(lvl, n, fmt, ...)` | 每 N 次记录一条          |
+| `LOG_ONCE(lvl, fmt, ...)`       | 只记录一次               |
 
 格式字符串使用 printf 风格（`%d`, `%s`, `%f` 等），启用 fmtlib 时使用 `{}` 占位符。
 
 ### Sink
 
-| Sink | 构造参数 | 说明 |
-|------|----------|------|
-| `ConsoleSink` | `force_color` (optional) | 自动检测 TTY，stderr 分流 WARN+ |
-| `RotatingFileSink` | `path`, `max_size`, `max_files` | 按大小轮转，POSIX I/O |
-| `DailyFileSink` | `dir`, `name`, `max_days`, `use_utc` | 按日期轮转 |
-| `CallbackSink` | `std::function<void(const LogEntry&)>` | 用户自定义回调 |
-| `RingMemorySink` | `capacity` | 环形内存存储，支持 DumpToFile |
+| Sink               | 构造参数                               | 说明                            |
+| ------------------ | -------------------------------------- | ------------------------------- |
+| `ConsoleSink`      | `force_color` (optional)               | 自动检测 TTY，stderr 分流 WARN+ |
+| `RotatingFileSink` | `path`, `max_size`, `max_files`        | 按大小轮转，POSIX I/O           |
+| `DailyFileSink`    | `dir`, `name`, `max_days`, `use_utc`   | 按日期轮转                      |
+| `CallbackSink`     | `std::function<void(const LogEntry&)>` | 用户自定义回调                  |
+| `RingMemorySink`   | `capacity`                             | 环形内存存储，支持 DumpToFile   |
 
 每个 Sink 支持：
 - `SetFormatter(std::unique_ptr<IFormatter>)` — 设置独立格式化器
@@ -111,26 +111,26 @@ logger.DropCount();                // 查询丢弃计数
 
 **PatternFormatter** — 19 个占位符：
 
-| 占位符 | 含义 |
-|--------|------|
-| `%D` | 日期 (YYYY-MM-DD) |
-| `%T` | 时间 (HH:MM:SS) |
-| `%e` | 微秒 |
-| `%L` | 级别全名 |
-| `%l` | 级别缩写 |
-| `%f` | 文件名 |
-| `%F` | 文件完整路径 |
-| `%n` | 函数名 |
-| `%N` | 完整函数签名 |
-| `%#` | 行号 |
-| `%t` | 线程 ID |
-| `%P` | 进程 ID |
-| `%r` | 线程名 |
-| `%s` | 序列号 |
-| `%g` | 标签 |
-| `%m` | 消息正文 |
-| `%C` | ANSI 颜色起始 |
-| `%R` | ANSI 颜色重置 |
+| 占位符 | 含义              |
+| ------ | ----------------- |
+| `%D`   | 日期 (YYYY-MM-DD) |
+| `%T`   | 时间 (HH:MM:SS)   |
+| `%e`   | 微秒              |
+| `%L`   | 级别全名          |
+| `%l`   | 级别缩写          |
+| `%f`   | 文件名            |
+| `%F`   | 文件完整路径      |
+| `%n`   | 函数名            |
+| `%N`   | 完整函数签名      |
+| `%#`   | 行号              |
+| `%t`   | 线程 ID           |
+| `%P`   | 进程 ID           |
+| `%r`   | 线程名            |
+| `%s`   | 序列号            |
+| `%g`   | 标签              |
+| `%m`   | 消息正文          |
+| `%C`   | ANSI 颜色起始     |
+| `%R`   | ANSI 颜色重置     |
 
 默认 pattern: `[%D %T%e] [%C%L%R] [tid:%t] [%f:%#::%n] %g %m`
 
@@ -159,23 +159,23 @@ LOG_SCOPED_TAG("module", "network");
 
 ### CMake 选项
 
-| 选项 | 默认值 | 说明 |
-|------|--------|------|
-| `BR_LOG_BUILD_TESTS` | OFF | 编译单元测试 |
-| `BR_LOG_BUILD_EXAMPLES` | OFF | 编译示例 |
-| `BR_LOG_BUILD_BENCH` | OFF | 编译性能测试 |
-| `BR_LOG_USE_FMTLIB` | OFF | 使用 fmtlib 替代 snprintf |
-| `BR_LOG_BUILD_ROS2` | OFF | 编译 ROS2 扩展层（需 ROS2 humble 环境） |
-| `BR_LOG_EMBEDDED_MODE` | OFF | 嵌入式裁剪模式 |
+| 选项                    | 默认值 | 说明                                    |
+| ----------------------- | ------ | --------------------------------------- |
+| `BR_LOG_BUILD_TESTS`    | OFF    | 编译单元测试                            |
+| `BR_LOG_BUILD_EXAMPLES` | OFF    | 编译示例                                |
+| `BR_LOG_BUILD_BENCH`    | OFF    | 编译性能测试                            |
+| `BR_LOG_USE_FMTLIB`     | OFF    | 使用 fmtlib 替代 snprintf               |
+| `BR_LOG_BUILD_ROS2`     | OFF    | 编译 ROS2 扩展层（需 ROS2 humble 环境） |
+| `BR_LOG_EMBEDDED_MODE`  | OFF    | 嵌入式裁剪模式                          |
 
 ### 编译期宏
 
-| 宏 | 默认值 | 说明 |
-|----|--------|------|
+| 宏                    | 默认值    | 说明                                           |
+| --------------------- | --------- | ---------------------------------------------- |
 | `BR_LOG_ACTIVE_LEVEL` | 0 (Trace) | 编译期最低级别，低于此级别的日志代码被完全移除 |
-| `BR_LOG_RING_SIZE` | 8192 | Ring buffer 容量（条目数） |
-| `BR_LOG_MAX_MSG_LEN` | 512 | 单条消息最大字节数 |
-| `BR_LOG_MAX_TAGS` | 16 | 每条日志最大标签数 |
+| `BR_LOG_RING_SIZE`    | 8192      | Ring buffer 容量（条目数）                     |
+| `BR_LOG_MAX_MSG_LEN`  | 512       | 单条消息最大字节数                             |
+| `BR_LOG_MAX_TAGS`     | 16        | 每条日志最大标签数                             |
 
 编译期过滤示例（只保留 WARN 及以上）：
 
@@ -237,14 +237,14 @@ void OnTimer() {
 
 初始化时 `ROS2ContextProvider` 自动注入以下全局标签：
 
-| 标签 key | 来源 |
-|----------|------|
-| `ros.node` | 节点名 |
-| `ros.namespace` | 节点命名空间 |
-| `ros.domain_id` | DDS Domain ID |
-| `ros.package` | CMake 宏 `BR_LOG_ROS2_PACKAGE_NAME` |
-| `ros.executable` | /proc/self/exe |
-| `ros.rmw` | RMW 实现名称 |
+| 标签 key         | 来源                                |
+| ---------------- | ----------------------------------- |
+| `ros.node`       | 节点名                              |
+| `ros.namespace`  | 节点命名空间                        |
+| `ros.domain_id`  | DDS Domain ID                       |
+| `ros.package`    | CMake 宏 `BR_LOG_ROS2_PACKAGE_NAME` |
+| `ros.executable` | /proc/self/exe                      |
+| `ros.rmw`        | RMW 实现名称                        |
 
 ## 嵌入式裁剪
 
@@ -262,14 +262,14 @@ cmake -B build -DBR_LOG_EMBEDDED_MODE=ON -DBR_LOG_ACTIVE_LEVEL=2
 
 ## 线程安全
 
-| 操作 | 保证 |
-|------|------|
-| `LOG_*` 宏 | 线程安全（无锁 MPSC） |
-| `Logger::SetLevel()` | 线程安全（atomic） |
-| `Logger::AddSink()` | **非线程安全**，仅在 `Start()` 前调用 |
-| `LogContext::SetGlobalTag()` | 线程安全（mutex） |
-| `LogContext::SetThreadName()` | 仅在当前线程调用 |
-| `ScopedTag` | 仅在当前线程有效（TLS） |
+| 操作                          | 保证                                  |
+| ----------------------------- | ------------------------------------- |
+| `LOG_*` 宏                    | 线程安全（无锁 MPSC）                 |
+| `Logger::SetLevel()`          | 线程安全（atomic）                    |
+| `Logger::AddSink()`           | **非线程安全**，仅在 `Start()` 前调用 |
+| `LogContext::SetGlobalTag()`  | 线程安全（mutex）                     |
+| `LogContext::SetThreadName()` | 仅在当前线程调用                      |
+| `ScopedTag`                   | 仅在当前线程有效（TLS）               |
 
 ## 项目结构
 

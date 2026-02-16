@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(br_logger_ros2_example LANGUAGES CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
