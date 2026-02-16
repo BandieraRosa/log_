@@ -7,6 +7,10 @@ set(TEST_SOURCES
     test_pattern_formatter.cpp
     test_json_formatter.cpp
     test_console_sink.cpp
+    test_callback_sink.cpp
+    test_ring_memory_sink.cpp
+    test_rotating_file_sink.cpp
+    test_daily_file_sink.cpp
     test_logger_integration.cpp
     test_fixed_vector.cpp
     test_timestamp.cpp
