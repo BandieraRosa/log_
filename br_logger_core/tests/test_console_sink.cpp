@@ -1,260 +1,278 @@
-#include "../include/br_logger/sinks/console_sink.hpp"
+#include <gtest/gtest.h>
+
+#include <cstdio>
+#include <cstring>
+#include <memory>
+#include <string>
+
 #include "../include/br_logger/formatters/pattern_formatter.hpp"
 #include "../include/br_logger/log_entry.hpp"
 #include "../include/br_logger/log_level.hpp"
 #include "../include/br_logger/platform.hpp"
-#include <gtest/gtest.h>
-#include <cstring>
-#include <cstdio>
-#include <string>
-#include <memory>
+#include "../include/br_logger/sinks/console_sink.hpp"
 
 #if defined(BR_LOG_PLATFORM_LINUX) || defined(BR_LOG_PLATFORM_MACOS)
-    #include <unistd.h>
+#include <unistd.h>
 #endif
 
-static br_logger::LogEntry make_test_entry(br_logger::LogLevel level = br_logger::LogLevel::Info) {
-    br_logger::LogEntry entry{};
-    entry.wall_clock_ns = 1739692200123456000ULL;
-    entry.timestamp_ns = 123456789ULL;
-    entry.level = level;
-    entry.file_path = "/src/main.cpp";
-    entry.file_name = "main.cpp";
-    entry.function_name = "process";
-    entry.pretty_function = "void process(int)";
-    entry.line = 42;
-    entry.column = 0;
-    entry.thread_id = 1234;
-    entry.process_id = 5678;
-    std::strncpy(entry.thread_name, "worker", sizeof(entry.thread_name));
-    entry.tag_count = 0;
-    entry.sequence_id = 1001;
-    const char* msg = "test message";
-    entry.msg_len = static_cast<uint16_t>(std::strlen(msg));
-    std::strncpy(entry.msg, msg, BR_LOG_MAX_MSG_LEN);
-    return entry;
+static br_logger::LogEntry make_test_entry(
+    br_logger::LogLevel level = br_logger::LogLevel::Info)
+{
+  br_logger::LogEntry entry{};
+  entry.wall_clock_ns = 1739692200123456000ULL;
+  entry.timestamp_ns = 123456789ULL;
+  entry.level = level;
+  entry.file_path = "/src/main.cpp";
+  entry.file_name = "main.cpp";
+  entry.function_name = "process";
+  entry.pretty_function = "void process(int)";
+  entry.line = 42;
+  entry.column = 0;
+  entry.thread_id = 1234;
+  entry.process_id = 5678;
+  std::strncpy(entry.thread_name, "worker", sizeof(entry.thread_name));
+  entry.tag_count = 0;
+  entry.sequence_id = 1001;
+  const char* msg = "test message";
+  entry.msg_len = static_cast<uint16_t>(std::strlen(msg));
+  std::strncpy(entry.msg, msg, BR_LOG_MAX_MSG_LEN);
+  return entry;
 }
 
-class MockFormatter : public br_logger::IFormatter {
-public:
-    std::string last_formatted;
+class MockFormatter : public br_logger::IFormatter
+{
+ public:
+  std::string last_formatted;
 
-    size_t format(const br_logger::LogEntry& entry, char* buf, size_t buf_size) override {
-        last_formatted = std::string(entry.msg, entry.msg_len);
-        size_t len = last_formatted.size();
-        if (len >= buf_size) len = buf_size - 1;
-        std::memcpy(buf, last_formatted.c_str(), len);
-        buf[len] = '\0';
-        return len;
-    }
+  size_t Format(const br_logger::LogEntry& entry, char* buf, size_t buf_size) override
+  {
+    last_formatted = std::string(entry.msg, entry.msg_len);
+    size_t len = last_formatted.size();
+    if (len >= buf_size) len = buf_size - 1;
+    std::memcpy(buf, last_formatted.c_str(), len);
+    buf[len] = '\0';
+    return len;
+  }
 };
 
-TEST(ConsoleSink, DefaultConstruction) {
-    br_logger::ConsoleSink sink;
-    EXPECT_EQ(sink.level(), br_logger::LogLevel::Trace);
+TEST(ConsoleSink, DefaultConstruction)
+{
+  br_logger::ConsoleSink sink;
+  EXPECT_EQ(sink.Level(), br_logger::LogLevel::Trace);
 }
 
-TEST(ConsoleSink, ForceColorTrue) {
-    br_logger::ConsoleSink sink(true);
-    EXPECT_EQ(sink.level(), br_logger::LogLevel::Trace);
+TEST(ConsoleSink, ForceColorTrue)
+{
+  br_logger::ConsoleSink sink(true);
+  EXPECT_EQ(sink.Level(), br_logger::LogLevel::Trace);
 }
 
-TEST(ConsoleSink, ForceColorFalse) {
-    br_logger::ConsoleSink sink(false);
-    EXPECT_EQ(sink.level(), br_logger::LogLevel::Trace);
+TEST(ConsoleSink, ForceColorFalse)
+{
+  br_logger::ConsoleSink sink(false);
+  EXPECT_EQ(sink.Level(), br_logger::LogLevel::Trace);
 }
 
-TEST(ConsoleSink, ForceColorNullopt) {
-    br_logger::ConsoleSink sink(std::nullopt);
-    EXPECT_EQ(sink.level(), br_logger::LogLevel::Trace);
+TEST(ConsoleSink, ForceColorNullopt)
+{
+  br_logger::ConsoleSink sink(std::nullopt);
+  EXPECT_EQ(sink.Level(), br_logger::LogLevel::Trace);
 }
 
-TEST(ConsoleSink, SetLevel) {
-    br_logger::ConsoleSink sink(false);
-    sink.set_level(br_logger::LogLevel::Warn);
-    EXPECT_EQ(sink.level(), br_logger::LogLevel::Warn);
+TEST(ConsoleSink, SetLevel)
+{
+  br_logger::ConsoleSink sink(false);
+  sink.SetLevel(br_logger::LogLevel::Warn);
+  EXPECT_EQ(sink.Level(), br_logger::LogLevel::Warn);
 }
 
-TEST(ConsoleSink, ShouldLogFiltering) {
-    br_logger::ConsoleSink sink(false);
-    sink.set_level(br_logger::LogLevel::Warn);
+TEST(ConsoleSink, ShouldLogFiltering)
+{
+  br_logger::ConsoleSink sink(false);
+  sink.SetLevel(br_logger::LogLevel::Warn);
 
-    EXPECT_FALSE(sink.should_log(br_logger::LogLevel::Trace));
-    EXPECT_FALSE(sink.should_log(br_logger::LogLevel::Debug));
-    EXPECT_FALSE(sink.should_log(br_logger::LogLevel::Info));
-    EXPECT_TRUE(sink.should_log(br_logger::LogLevel::Warn));
-    EXPECT_TRUE(sink.should_log(br_logger::LogLevel::Error));
-    EXPECT_TRUE(sink.should_log(br_logger::LogLevel::Fatal));
+  EXPECT_FALSE(sink.ShouldLog(br_logger::LogLevel::Trace));
+  EXPECT_FALSE(sink.ShouldLog(br_logger::LogLevel::Debug));
+  EXPECT_FALSE(sink.ShouldLog(br_logger::LogLevel::Info));
+  EXPECT_TRUE(sink.ShouldLog(br_logger::LogLevel::Warn));
+  EXPECT_TRUE(sink.ShouldLog(br_logger::LogLevel::Error));
+  EXPECT_TRUE(sink.ShouldLog(br_logger::LogLevel::Fatal));
 }
 
-TEST(ConsoleSink, WriteFilteredByLevel) {
-    br_logger::ConsoleSink sink(false);
-    sink.set_level(br_logger::LogLevel::Warn);
+TEST(ConsoleSink, WriteFilteredByLevel)
+{
+  br_logger::ConsoleSink sink(false);
+  sink.SetLevel(br_logger::LogLevel::Warn);
 
-    auto entry = make_test_entry(br_logger::LogLevel::Info);
-    sink.write(entry);
+  auto entry = make_test_entry(br_logger::LogLevel::Info);
+  sink.Write(entry);
 }
 
-TEST(ConsoleSink, FlushDoesNotCrash) {
-    br_logger::ConsoleSink sink(false);
-    EXPECT_NO_THROW(sink.flush());
+TEST(ConsoleSink, FlushDoesNotCrash)
+{
+  br_logger::ConsoleSink sink(false);
+  EXPECT_NO_THROW(sink.Flush());
 }
 
-TEST(ConsoleSink, SetFormatterCustom) {
-    br_logger::ConsoleSink sink(false);
-    auto mock = std::make_unique<MockFormatter>();
-    auto* mock_ptr = mock.get();
-    sink.set_formatter(std::move(mock));
+TEST(ConsoleSink, SetFormatterCustom)
+{
+  br_logger::ConsoleSink sink(false);
+  auto mock = std::make_unique<MockFormatter>();
+  auto* mock_ptr = mock.get();
+  sink.SetFormatter(std::move(mock));
 
-    auto entry = make_test_entry(br_logger::LogLevel::Info);
-    sink.write(entry);
-    EXPECT_EQ(mock_ptr->last_formatted, "test message");
+  auto entry = make_test_entry(br_logger::LogLevel::Info);
+  sink.Write(entry);
+  EXPECT_EQ(mock_ptr->last_formatted, "test message");
 }
 
-TEST(ConsoleSink, DefaultFormatterCreatedOnFirstWrite) {
-    br_logger::ConsoleSink sink(false);
-    auto entry = make_test_entry(br_logger::LogLevel::Info);
-    EXPECT_NO_THROW(sink.write(entry));
+TEST(ConsoleSink, DefaultFormatterCreatedOnFirstWrite)
+{
+  br_logger::ConsoleSink sink(false);
+  auto entry = make_test_entry(br_logger::LogLevel::Info);
+  EXPECT_NO_THROW(sink.Write(entry));
 }
 
-static std::string capture_fd_output(int fd, std::function<void()> action) {
-    int pipefd[2];
-    EXPECT_EQ(pipe(pipefd), 0);
+static std::string capture_fd_output(int fd, std::function<void()> action)
+{
+  int pipefd[2];
+  EXPECT_EQ(pipe(pipefd), 0);
 
-    int saved_fd = dup(fd);
-    EXPECT_NE(saved_fd, -1);
+  int saved_fd = dup(fd);
+  EXPECT_NE(saved_fd, -1);
 
-    dup2(pipefd[1], fd);
-    close(pipefd[1]);
+  dup2(pipefd[1], fd);
+  close(pipefd[1]);
 
-    action();
-    fflush(nullptr);
+  action();
+  fflush(nullptr);
 
-    dup2(saved_fd, fd);
-    close(saved_fd);
+  dup2(saved_fd, fd);
+  close(saved_fd);
 
-    char buf[4096] = {};
-    ssize_t n = read(pipefd[0], buf, sizeof(buf) - 1);
-    close(pipefd[0]);
+  char buf[4096] = {};
+  ssize_t n = read(pipefd[0], buf, sizeof(buf) - 1);
+  close(pipefd[0]);
 
-    if (n > 0) {
-        buf[n] = '\0';
-        return std::string(buf, static_cast<size_t>(n));
-    }
-    return "";
+  if (n > 0)
+  {
+    buf[n] = '\0';
+    return std::string(buf, static_cast<size_t>(n));
+  }
+  return "";
 }
 
-TEST(ConsoleSink, WriteInfoToStdout) {
-    br_logger::ConsoleSink sink(false);
-    auto entry = make_test_entry(br_logger::LogLevel::Info);
+TEST(ConsoleSink, WriteInfoToStdout)
+{
+  br_logger::ConsoleSink sink(false);
+  auto entry = make_test_entry(br_logger::LogLevel::Info);
 
-    std::string stdout_output = capture_fd_output(STDOUT_FILENO, [&]() {
-        sink.write(entry);
-    });
+  std::string stdout_output =
+      capture_fd_output(STDOUT_FILENO, [&]() { sink.Write(entry); });
 
-    EXPECT_FALSE(stdout_output.empty());
-    EXPECT_NE(stdout_output.find("test message"), std::string::npos);
+  EXPECT_FALSE(stdout_output.empty());
+  EXPECT_NE(stdout_output.find("test message"), std::string::npos);
 }
 
-TEST(ConsoleSink, WriteTraceToStdout) {
-    br_logger::ConsoleSink sink(false);
-    auto entry = make_test_entry(br_logger::LogLevel::Trace);
+TEST(ConsoleSink, WriteTraceToStdout)
+{
+  br_logger::ConsoleSink sink(false);
+  auto entry = make_test_entry(br_logger::LogLevel::Trace);
 
-    std::string stdout_output = capture_fd_output(STDOUT_FILENO, [&]() {
-        sink.write(entry);
-    });
+  std::string stdout_output =
+      capture_fd_output(STDOUT_FILENO, [&]() { sink.Write(entry); });
 
-    EXPECT_FALSE(stdout_output.empty());
-    EXPECT_NE(stdout_output.find("test message"), std::string::npos);
+  EXPECT_FALSE(stdout_output.empty());
+  EXPECT_NE(stdout_output.find("test message"), std::string::npos);
 }
 
-TEST(ConsoleSink, WriteDebugToStdout) {
-    br_logger::ConsoleSink sink(false);
-    auto entry = make_test_entry(br_logger::LogLevel::Debug);
+TEST(ConsoleSink, WriteDebugToStdout)
+{
+  br_logger::ConsoleSink sink(false);
+  auto entry = make_test_entry(br_logger::LogLevel::Debug);
 
-    std::string stdout_output = capture_fd_output(STDOUT_FILENO, [&]() {
-        sink.write(entry);
-    });
+  std::string stdout_output =
+      capture_fd_output(STDOUT_FILENO, [&]() { sink.Write(entry); });
 
-    EXPECT_FALSE(stdout_output.empty());
+  EXPECT_FALSE(stdout_output.empty());
 }
 
-TEST(ConsoleSink, WriteWarnToStderr) {
-    br_logger::ConsoleSink sink(false);
-    auto entry = make_test_entry(br_logger::LogLevel::Warn);
+TEST(ConsoleSink, WriteWarnToStderr)
+{
+  br_logger::ConsoleSink sink(false);
+  auto entry = make_test_entry(br_logger::LogLevel::Warn);
 
-    std::string stderr_output = capture_fd_output(STDERR_FILENO, [&]() {
-        sink.write(entry);
-    });
+  std::string stderr_output =
+      capture_fd_output(STDERR_FILENO, [&]() { sink.Write(entry); });
 
-    EXPECT_FALSE(stderr_output.empty());
-    EXPECT_NE(stderr_output.find("test message"), std::string::npos);
+  EXPECT_FALSE(stderr_output.empty());
+  EXPECT_NE(stderr_output.find("test message"), std::string::npos);
 }
 
-TEST(ConsoleSink, WriteErrorToStderr) {
-    br_logger::ConsoleSink sink(false);
-    auto entry = make_test_entry(br_logger::LogLevel::Error);
+TEST(ConsoleSink, WriteErrorToStderr)
+{
+  br_logger::ConsoleSink sink(false);
+  auto entry = make_test_entry(br_logger::LogLevel::Error);
 
-    std::string stderr_output = capture_fd_output(STDERR_FILENO, [&]() {
-        sink.write(entry);
-    });
+  std::string stderr_output =
+      capture_fd_output(STDERR_FILENO, [&]() { sink.Write(entry); });
 
-    EXPECT_FALSE(stderr_output.empty());
-    EXPECT_NE(stderr_output.find("test message"), std::string::npos);
+  EXPECT_FALSE(stderr_output.empty());
+  EXPECT_NE(stderr_output.find("test message"), std::string::npos);
 }
 
-TEST(ConsoleSink, WriteFatalToStderr) {
-    br_logger::ConsoleSink sink(false);
-    auto entry = make_test_entry(br_logger::LogLevel::Fatal);
+TEST(ConsoleSink, WriteFatalToStderr)
+{
+  br_logger::ConsoleSink sink(false);
+  auto entry = make_test_entry(br_logger::LogLevel::Fatal);
 
-    std::string stderr_output = capture_fd_output(STDERR_FILENO, [&]() {
-        sink.write(entry);
-    });
+  std::string stderr_output =
+      capture_fd_output(STDERR_FILENO, [&]() { sink.Write(entry); });
 
-    EXPECT_FALSE(stderr_output.empty());
-    EXPECT_NE(stderr_output.find("test message"), std::string::npos);
+  EXPECT_FALSE(stderr_output.empty());
+  EXPECT_NE(stderr_output.find("test message"), std::string::npos);
 }
 
-TEST(ConsoleSink, WarnNotOnStdout) {
-    br_logger::ConsoleSink sink(false);
-    auto entry = make_test_entry(br_logger::LogLevel::Warn);
+TEST(ConsoleSink, WarnNotOnStdout)
+{
+  br_logger::ConsoleSink sink(false);
+  auto entry = make_test_entry(br_logger::LogLevel::Warn);
 
-    std::string stdout_output = capture_fd_output(STDOUT_FILENO, [&]() {
-        sink.write(entry);
-    });
+  std::string stdout_output =
+      capture_fd_output(STDOUT_FILENO, [&]() { sink.Write(entry); });
 
-    EXPECT_TRUE(stdout_output.empty());
+  EXPECT_TRUE(stdout_output.empty());
 }
 
-TEST(ConsoleSink, InfoNotOnStderr) {
-    br_logger::ConsoleSink sink(false);
-    auto entry = make_test_entry(br_logger::LogLevel::Info);
+TEST(ConsoleSink, InfoNotOnStderr)
+{
+  br_logger::ConsoleSink sink(false);
+  auto entry = make_test_entry(br_logger::LogLevel::Info);
 
-    std::string stderr_output = capture_fd_output(STDERR_FILENO, [&]() {
-        sink.write(entry);
-    });
+  std::string stderr_output =
+      capture_fd_output(STDERR_FILENO, [&]() { sink.Write(entry); });
 
-    EXPECT_TRUE(stderr_output.empty());
+  EXPECT_TRUE(stderr_output.empty());
 }
 
-TEST(ConsoleSink, ColorEnabledOutput) {
-    br_logger::ConsoleSink sink(true);
-    auto entry = make_test_entry(br_logger::LogLevel::Info);
+TEST(ConsoleSink, ColorEnabledOutput)
+{
+  br_logger::ConsoleSink sink(true);
+  auto entry = make_test_entry(br_logger::LogLevel::Info);
 
-    std::string stdout_output = capture_fd_output(STDOUT_FILENO, [&]() {
-        sink.write(entry);
-    });
+  std::string stdout_output =
+      capture_fd_output(STDOUT_FILENO, [&]() { sink.Write(entry); });
 
-    EXPECT_NE(stdout_output.find("\033["), std::string::npos);
+  EXPECT_NE(stdout_output.find("\033["), std::string::npos);
 }
 
-TEST(ConsoleSink, ColorDisabledOutput) {
-    br_logger::ConsoleSink sink(false);
-    auto entry = make_test_entry(br_logger::LogLevel::Info);
+TEST(ConsoleSink, ColorDisabledOutput)
+{
+  br_logger::ConsoleSink sink(false);
+  auto entry = make_test_entry(br_logger::LogLevel::Info);
 
-    std::string stdout_output = capture_fd_output(STDOUT_FILENO, [&]() {
-        sink.write(entry);
-    });
+  std::string stdout_output =
+      capture_fd_output(STDOUT_FILENO, [&]() { sink.Write(entry); });
 
-    EXPECT_EQ(stdout_output.find("\033["), std::string::npos);
+  EXPECT_EQ(stdout_output.find("\033["), std::string::npos);
 }

@@ -1,33 +1,36 @@
 #pragma once
-#include "sink_interface.hpp"
-#include <string>
 #include <ctime>
+#include <string>
 
-namespace br_logger {
+#include "sink_interface.hpp"
 
-class DailyFileSink : public ILogSink {
-public:
-    DailyFileSink(const std::string& base_dir, const std::string& base_name,
-                  size_t max_days = 0, bool use_utc = false);
-    ~DailyFileSink();
+namespace br_logger
+{
 
-    void write(const LogEntry& entry) override;
-    void flush() override;
+class DailyFileSink : public ILogSink
+{
+ public:
+  DailyFileSink(const std::string& base_dir, const std::string& base_name,
+                size_t max_days = 0, bool use_utc = false);
+  ~DailyFileSink();
 
-    std::string make_filename(std::time_t t) const;
+  void Write(const LogEntry& entry) override;
+  void Flush() override;
 
-private:
-    std::string base_dir_;
-    std::string base_name_;
-    size_t max_days_;
-    bool use_utc_;
-    int fd_;
-    int current_day_;
+  std::string MakeFilename(std::time_t t) const;
 
-    void open_file_for_today();
-    void cleanup_old_files();
-    int get_day(std::time_t t) const;
-    static void mkdir_recursive(const std::string& path);
+ private:
+  std::string base_dir_;
+  std::string base_name_;
+  size_t max_days_;
+  bool use_utc_;
+  int fd_;
+  int current_day_;
+
+  void OpenFileForToday();
+  void CleanupOldFiles();
+  int GetDay(std::time_t t) const;
+  static void MkdirRecursive(const std::string& path);
 };
 
-} // namespace br_logger
+}  // namespace br_logger

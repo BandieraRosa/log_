@@ -1,28 +1,31 @@
 #pragma once
-#include "sink_interface.hpp"
-#include <vector>
 #include <cstddef>
+#include <vector>
 
-namespace br_logger {
+#include "sink_interface.hpp"
 
-class RingMemorySink : public ILogSink {
-public:
-    explicit RingMemorySink(size_t capacity = 1024);
+namespace br_logger
+{
 
-    void write(const LogEntry& entry) override;
-    void flush() override;
+class RingMemorySink : public ILogSink
+{
+ public:
+  explicit RingMemorySink(size_t capacity = 1024);
 
-    bool dump_to_file(const char* path);
+  void Write(const LogEntry& entry) override;
+  void Flush() override;
 
-    size_t size() const;
+  bool DumpToFile(const char* path);
 
-    const LogEntry& at(size_t index) const;
+  size_t Size() const;
 
-private:
-    std::vector<LogEntry> buffer_;
-    size_t capacity_;
-    size_t head_;
-    size_t count_;
+  const LogEntry& At(size_t index) const;
+
+ private:
+  std::vector<LogEntry> buffer_;
+  size_t capacity_;
+  size_t head_;
+  size_t count_;
 };
 
-} // namespace br_logger
+}  // namespace br_logger

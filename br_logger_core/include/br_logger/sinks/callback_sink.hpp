@@ -1,20 +1,23 @@
 #pragma once
-#include "sink_interface.hpp"
 #include <functional>
 
-namespace br_logger {
+#include "sink_interface.hpp"
 
-class CallbackSink : public ILogSink {
-public:
-    using Callback = std::function<void(const LogEntry&)>;
+namespace br_logger
+{
 
-    explicit CallbackSink(Callback cb);
+class CallbackSink : public ILogSink
+{
+ public:
+  using Callback = std::function<void(const LogEntry&)>;
 
-    void write(const LogEntry& entry) override;
-    void flush() override;
+  explicit CallbackSink(Callback cb);
 
-private:
-    Callback callback_;
+  void Write(const LogEntry& entry) override;
+  void Flush() override;
+
+ private:
+  Callback callback_;
 };
 
-} // namespace br_logger
+}  // namespace br_logger

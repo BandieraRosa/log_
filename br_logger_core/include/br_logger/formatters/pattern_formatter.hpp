@@ -1,41 +1,58 @@
 #pragma once
-#include "formatter_interface.hpp"
+#include <cstdint>
 #include <string>
 #include <string_view>
 #include <vector>
-#include <cstdint>
 
-namespace br_logger {
+#include "formatter_interface.hpp"
 
-class PatternFormatter : public IFormatter {
-public:
-    explicit PatternFormatter(
-        std::string_view pattern = "[%D %T%e] [%C%L%R] [tid:%t] [%f:%#::%n] %g %m",
-        bool enable_color = true);
+namespace br_logger
+{
 
-    size_t format(const LogEntry& entry, char* buf, size_t buf_size) override;
+class PatternFormatter : public IFormatter
+{
+ public:
+  explicit PatternFormatter(
+      std::string_view pattern = "[%D %T%e] [%C%L%R] [tid:%t] [%f:%#::%n] %g %m",
+      bool enable_color = true);
 
-private:
-    std::string pattern_;
-    bool enable_color_;
+  size_t Format(const LogEntry& entry, char* buf, size_t buf_size) override;
 
-    enum class OpType : uint8_t {
-        Literal,
-        Date, Time, Microseconds,
-        LevelFull, LevelShort,
-        FileName, FilePath, FuncName, PrettyFunc,
-        Line, ThreadId, ProcessId, ThreadName,
-        SequenceId, Tags, Message,
-        ColorStart, ColorReset
-    };
+ private:
+  std::string pattern_;
+  bool enable_color_;
 
-    struct FormatOp {
-        OpType type;
-        std::string literal;
-    };
+  enum class OpType : uint8_t
+  {
+    Literal,
+    Date,
+    Time,
+    Microseconds,
+    LevelFull,
+    LevelShort,
+    FileName,
+    FilePath,
+    FuncName,
+    PrettyFunc,
+    Line,
+    ThreadId,
+    ProcessId,
+    ThreadName,
+    SequenceId,
+    Tags,
+    Message,
+    ColorStart,
+    ColorReset
+  };
 
-    std::vector<FormatOp> ops_;
-    void compile_pattern();
+  struct FormatOp
+  {
+    OpType type;
+    std::string literal;
+  };
+
+  std::vector<FormatOp> ops_;
+  void CompilePattern();
 };
 
-} // namespace br_logger
+}  // namespace br_logger

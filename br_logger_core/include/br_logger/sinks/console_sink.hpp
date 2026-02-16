@@ -1,20 +1,23 @@
 #pragma once
-#include "sink_interface.hpp"
 #include <optional>
 
-namespace br_logger {
+#include "sink_interface.hpp"
 
-class ConsoleSink : public ILogSink {
-public:
-    explicit ConsoleSink(std::optional<bool> force_color = std::nullopt);
+namespace br_logger
+{
 
-    void write(const LogEntry& entry) override;
-    void flush() override;
+class ConsoleSink : public ILogSink
+{
+ public:
+  explicit ConsoleSink(std::optional<bool> force_color = std::nullopt);
 
-private:
-    bool use_color_;
-    bool stdout_is_tty_;
-    bool stderr_is_tty_;
+  void Write(const LogEntry& entry) override;
+  void Flush() override;
+
+ private:
+  bool use_color_;
+  bool stdout_is_tty_;
+  bool stderr_is_tty_;
 };
 
-} // namespace br_logger
+}  // namespace br_logger

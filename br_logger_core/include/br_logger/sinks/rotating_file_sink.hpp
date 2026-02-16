@@ -1,30 +1,34 @@
 #pragma once
-#include "sink_interface.hpp"
 #include <string>
 
-namespace br_logger {
+#include "sink_interface.hpp"
 
-class RotatingFileSink : public ILogSink {
-public:
-    // base_path: e.g. "/var/log/app.log"
-    // max_file_size: max bytes per file before rotation
-    // max_files: number of rotated files to keep (e.g. 3 means app.log, app.1.log, app.2.log, app.3.log)
-    RotatingFileSink(const std::string& base_path, size_t max_file_size,
-                     size_t max_files = 5);
-    ~RotatingFileSink();
+namespace br_logger
+{
 
-    void write(const LogEntry& entry) override;
-    void flush() override;
+class RotatingFileSink : public ILogSink
+{
+ public:
+  // base_path: e.g. "/var/log/app.log"
+  // max_file_size: max bytes per file before rotation
+  // max_files: number of rotated files to keep (e.g. 3 means app.log, app.1.log,
+  // app.2.log, app.3.log)
+  RotatingFileSink(const std::string& base_path, size_t max_file_size,
+                   size_t max_files = 5);
+  ~RotatingFileSink();
 
-private:
-    std::string base_path_;
-    size_t max_file_size_;
-    size_t max_files_;
-    size_t current_size_;
-    int fd_;
+  void Write(const LogEntry& entry) override;
+  void Flush() override;
 
-    void open_file();
-    void rotate();
+ private:
+  std::string base_path_;
+  size_t max_file_size_;
+  size_t max_files_;
+  size_t current_size_;
+  int fd_;
+
+  void OpenFile();
+  void Rotate();
 };
 
-} // namespace br_logger
+}  // namespace br_logger
