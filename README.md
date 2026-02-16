@@ -30,17 +30,17 @@ ctest --test-dir build
 #include <br_logger/formatters/pattern_formatter.hpp>
 
 int main() {
-    auto& logger = br_logger::Logger::instance();
+    auto& logger = br_logger::Logger::Instance();
 
     auto console = std::make_unique<br_logger::ConsoleSink>();
-    console->set_formatter(std::make_unique<br_logger::PatternFormatter>());
-    logger.add_sink(std::move(console));
-    logger.start();
+    console->SetFormatter(std::make_unique<br_logger::PatternFormatter>());
+    logger.AddSink(std::move(console));
+    logger.Start();
 
     LOG_INFO("hello %s", "world");
     LOG_WARN("value = %d", 42);
 
-    logger.stop();
+    logger.Stop();
 }
 ```
 
@@ -65,14 +65,14 @@ target_link_libraries(your_target PRIVATE br_logger::br_logger_core)
 ### Logger
 
 ```cpp
-auto& logger = br_logger::Logger::instance();  // Meyer's 单例
+auto& logger = br_logger::Logger::Instance();
 
-logger.add_sink(std::move(sink));  // 添加 Sink（start() 前调用）
-logger.set_level(LogLevel::Debug); // 运行时级别阈值（atomic）
-logger.start();                    // 启动后端消费线程
-logger.stop();                     // 停止后端、刷新所有 Sink
-logger.drain(64);                  // 手动消费（嵌入式/测试用）
-logger.drop_count();               // 查询丢弃计数
+logger.AddSink(std::move(sink));   // 添加 Sink（Start() 前调用）
+logger.SetLevel(LogLevel::Debug);  // 运行时级别阈值（atomic）
+logger.Start();                    // 启动后端消费线程
+logger.Stop();                     // 停止后端、刷新所有 Sink
+logger.Drain(64);                  // 手动消费（嵌入式/测试用）
+logger.DropCount();                // 查询丢弃计数
 ```
 
 ### 日志宏
@@ -101,11 +101,11 @@ logger.drop_count();               // 查询丢弃计数
 | `RotatingFileSink` | `path`, `max_size`, `max_files` | 按大小轮转，POSIX I/O |
 | `DailyFileSink` | `dir`, `name`, `max_days`, `use_utc` | 按日期轮转 |
 | `CallbackSink` | `std::function<void(const LogEntry&)>` | 用户自定义回调 |
-| `RingMemorySink` | `capacity` | 环形内存存储，支持 dump_to_file |
+| `RingMemorySink` | `capacity` | 环形内存存储，支持 DumpToFile |
 
 每个 Sink 支持：
-- `set_formatter(std::unique_ptr<IFormatter>)` — 设置独立格式化器
-- `set_level(LogLevel)` — 设置 Sink 级别过滤（独立于全局）
+- `SetFormatter(std::unique_ptr<IFormatter>)` — 设置独立格式化器
+- `SetLevel(LogLevel)` — 设置 Sink 级别过滤（独立于全局）
 
 ### Formatter
 
@@ -139,21 +139,19 @@ logger.drop_count();               // 查询丢弃计数
 ### LogContext（上下文管理）
 
 ```cpp
-auto& ctx = br_logger::LogContext::instance();
+auto& ctx = br_logger::LogContext::Instance();
 
-ctx.set_global_tag("env", "prod");           // 全局标签（线程安全）
-ctx.remove_global_tag("env");
-ctx.set_process_name("my_app");
-ctx.set_app_version("2.0.0");
+ctx.SetGlobalTag("env", "prod");
+ctx.RemoveGlobalTag("env");
+ctx.SetProcessName("my_app");
+ctx.SetAppVersion("2.0.0");
 
-br_logger::LogContext::set_thread_name("worker-1");  // 线程名（TLS）
+br_logger::LogContext::SetThreadName("worker-1");
 
-// ScopedTag — RAII，出作用域自动移除
 {
     br_logger::LogContext::ScopedTag tag("request_id", "abc-123");
-    LOG_INFO("processing");  // 日志包含 request_id=abc-123
+    LOG_INFO("processing");
 }
-// 宏简写
 LOG_SCOPED_TAG("module", "network");
 ```
 
@@ -167,6 +165,7 @@ LOG_SCOPED_TAG("module", "network");
 | `BR_LOG_BUILD_EXAMPLES` | OFF | 编译示例 |
 | `BR_LOG_BUILD_BENCH` | OFF | 编译性能测试 |
 | `BR_LOG_USE_FMTLIB` | OFF | 使用 fmtlib 替代 snprintf |
+| `BR_LOG_BUILD_ROS2` | OFF | 编译 ROS2 扩展层（需 ROS2 humble 环境） |
 | `BR_LOG_EMBEDDED_MODE` | OFF | 嵌入式裁剪模式 |
 
 ### 编译期宏
@@ -184,6 +183,69 @@ LOG_SCOPED_TAG("module", "network");
 cmake -B build -DBR_LOG_ACTIVE_LEVEL=3
 ```
 
+## ROS2 集成
+
+br_logger 提供 `br_logger_ros2` 扩展包，与 ROS2 日志系统无缝桥接。
+
+### 编译
+
+```bash
+# 需先 source ROS2 环境
+source /opt/ros/humble/setup.bash
+cmake -B build -DBR_LOG_BUILD_ROS2=ON
+cmake --build build
+```
+
+### 一键初始化
+
+```cpp
+#include <br_logger_ros2/ros2_bridge.hpp>
+
+// 在节点中初始化
+br_logger::ros2::BridgeConfig config;
+config.enable_ros2_sink = true;   // 桥接到 rcl 日志（/rosout）
+config.enable_console = true;     // 同时输出到终端
+config.enable_file = true;        // 同时写入文件
+config.file_path = "/tmp/robot_logs/";
+br_logger::ros2::init(node_shared_ptr, config);
+
+// 关闭
+br_logger::ros2::shutdown();
+```
+
+### 回调宏
+
+在 ROS2 回调中自动附加上下文标签：
+
+```cpp
+#include <br_logger_ros2/ros2_macros.hpp>
+
+void OnChatter(const std_msgs::msg::String::SharedPtr msg) {
+    LOG_SUB_CALLBACK("/chatter");     // 自动注入 ros.topic, ros.cb_type
+    LOG_INFO("received: %s", msg->data.c_str());
+}
+
+void OnTimer() {
+    LOG_TIMER_CALLBACK("heartbeat");  // 自动注入 ros.timer, ros.cb_type
+    LOG_INFO("tick");
+}
+```
+
+可用宏：`LOG_SUB_CALLBACK`, `LOG_SRV_CALLBACK`, `LOG_TIMER_CALLBACK`, `LOG_ACTION_CALLBACK`
+
+### 自动注入的上下文标签
+
+初始化时 `ROS2ContextProvider` 自动注入以下全局标签：
+
+| 标签 key | 来源 |
+|----------|------|
+| `ros.node` | 节点名 |
+| `ros.namespace` | 节点命名空间 |
+| `ros.domain_id` | DDS Domain ID |
+| `ros.package` | CMake 宏 `BR_LOG_ROS2_PACKAGE_NAME` |
+| `ros.executable` | /proc/self/exe |
+| `ros.rmw` | RMW 实现名称 |
+
 ## 嵌入式裁剪
 
 启用 `BR_LOG_EMBEDDED_MODE=ON` 时：
@@ -192,7 +254,7 @@ cmake -B build -DBR_LOG_ACTIVE_LEVEL=3
 - 不链接 pthread
 - Ring buffer 缩小到 256 条
 - 消息缓冲区缩小到 128 字节
-- 通过 `Logger::instance().drain()` 在主循环中手动消费
+- 通过 `Logger::Instance().Drain()` 在主循环中手动消费
 
 ```bash
 cmake -B build -DBR_LOG_EMBEDDED_MODE=ON -DBR_LOG_ACTIVE_LEVEL=2
@@ -203,31 +265,33 @@ cmake -B build -DBR_LOG_EMBEDDED_MODE=ON -DBR_LOG_ACTIVE_LEVEL=2
 | 操作 | 保证 |
 |------|------|
 | `LOG_*` 宏 | 线程安全（无锁 MPSC） |
-| `Logger::set_level()` | 线程安全（atomic） |
-| `Logger::add_sink()` | **非线程安全**，仅在 `start()` 前调用 |
-| `LogContext::set_global_tag()` | 线程安全（mutex） |
-| `LogContext::set_thread_name()` | 仅在当前线程调用 |
+| `Logger::SetLevel()` | 线程安全（atomic） |
+| `Logger::AddSink()` | **非线程安全**，仅在 `Start()` 前调用 |
+| `LogContext::SetGlobalTag()` | 线程安全（mutex） |
+| `LogContext::SetThreadName()` | 仅在当前线程调用 |
 | `ScopedTag` | 仅在当前线程有效（TLS） |
 
 ## 项目结构
 
 ```
 br_logger_core/
-├── include/br_logger/
-│   ├── logger.hpp              # Logger 单例 + 所有日志宏
-│   ├── backend.hpp             # 后端消费线程
-│   ├── log_level.hpp           # LogLevel 枚举
-│   ├── log_entry.hpp           # LogEntry POD 结构体
-│   ├── log_context.hpp         # 上下文管理（标签、线程信息）
-│   ├── ring_buffer.hpp         # MPSC 无锁环形队列
-│   ├── timestamp.hpp           # 高精度时间戳
-│   ├── source_location.hpp     # 源码位置（C++17/20）
-│   ├── platform.hpp            # 平台检测 + 编译配置
-│   ├── fixed_vector.hpp        # 栈上固定容量 vector
-│   ├── formatters/             # PatternFormatter, JsonFormatter
-│   └── sinks/                  # Console, RotatingFile, DailyFile, Callback, RingMemory
+├── include/br_logger/          # 核心头文件
 ├── src/                        # 实现文件
-└── tests/                      # 186 个单元测试（Google Test）
+└── tests/                      # 186 个单元测试
+
+br_logger_ros2/
+├── include/br_logger_ros2/
+│   ├── ros2_bridge.hpp         # 一键初始化 init()/shutdown()
+│   ├── ros2_context.hpp        # ROS2ContextProvider 上下文注入
+│   ├── ros2_sink.hpp           # ROS2Sink 桥接 rcutils_log
+│   └── ros2_macros.hpp         # 回调便捷宏
+├── src/                        # 实现文件
+├── CMakeLists.txt              # ament_cmake 构建
+└── package.xml                 # ROS2 包描述
+
+examples/
+├── basic_cpp/                  # 基础 C++ 示例
+└── ros2_node/                  # ROS2 节点示例
 ```
 
 ## License
