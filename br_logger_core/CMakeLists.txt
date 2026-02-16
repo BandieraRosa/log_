@@ -109,3 +109,20 @@ install(FILES
 if(BR_LOG_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
+
+# Benchmarks
+if(BR_LOG_BUILD_BENCH)
+    include(FetchContent)
+    FetchContent_Declare(
+        benchmark
+        GIT_REPOSITORY https://github.com/google/benchmark.git
+        GIT_TAG v1.8.3
+    )
+    set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+    set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(benchmark)
+
+    add_executable(bench_throughput tests/bench_throughput.cpp)
+    target_link_libraries(bench_throughput PRIVATE br_logger_core benchmark::benchmark)
+    target_compile_definitions(bench_throughput PRIVATE BR_LOG_ACTIVE_LEVEL=0)
+endif()
