@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>br_logger_ros2_example</name>
+  <version>1.0.0</version>
+  <description>ROS2 example node demonstrating br_logger integration</description>
+  <maintainer email="bandiera@todo.todo">bandiera</maintainer>
+  <license>MIT</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>br_logger_ros2</depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

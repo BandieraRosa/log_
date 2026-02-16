@@ -118,7 +118,7 @@ class DailyFileSinkTest : public ::testing::Test
     std::time_t now = std::time(nullptr);
     std::tm tm_buf{};
     ::localtime_r(&now, &tm_buf);
-    char date_str[16];
+    char date_str[32];
     std::snprintf(date_str, sizeof(date_str), "%04d-%02d-%02d", tm_buf.tm_year + 1900,
                   tm_buf.tm_mon + 1, tm_buf.tm_mday);
     return test_dir_ + "/" + base_name + "_" + date_str + ".log";
