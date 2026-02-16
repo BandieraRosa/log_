@@ -50,7 +50,7 @@ void ConsoleSink::Write(const LogEntry& entry)
     return;
   }
 
-  FILE* target = (entry.level >= LogLevel::Warn) ? stderr : stdout;
+  FILE* target = (entry.level >= LogLevel::WARN) ? stderr : stdout;
   std::fwrite(format_buf_, 1, len, target);
   std::fwrite("\n", 1, 1, target);
 }

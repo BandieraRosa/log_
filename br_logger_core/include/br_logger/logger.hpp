@@ -46,7 +46,7 @@ class Logger
   ~Logger();
 
   LoggerBackend backend_;
-  std::atomic<LogLevel> level_{LogLevel::Info};
+  std::atomic<LogLevel> level_{LogLevel::INFO};
   std::atomic<uint64_t> sequence_{0};
   std::atomic<uint64_t> drop_count_{0};
   bool started_ = false;
@@ -130,12 +130,12 @@ void Logger::LogImpl(LogLevel level, const SourceLocation& loc, const char* fmt,
     }                                                                                    \
   } while (0)
 
-#define LOG_TRACE(fmt, ...) BR_LOG_CALL(Trace, fmt, ##__VA_ARGS__)
-#define LOG_DEBUG(fmt, ...) BR_LOG_CALL(Debug, fmt, ##__VA_ARGS__)
-#define LOG_INFO(fmt, ...) BR_LOG_CALL(Info, fmt, ##__VA_ARGS__)
-#define LOG_WARN(fmt, ...) BR_LOG_CALL(Warn, fmt, ##__VA_ARGS__)
-#define LOG_ERROR(fmt, ...) BR_LOG_CALL(Error, fmt, ##__VA_ARGS__)
-#define LOG_FATAL(fmt, ...) BR_LOG_CALL(Fatal, fmt, ##__VA_ARGS__)
+#define LOG_TRACE(fmt, ...) BR_LOG_CALL(TRACE, fmt, ##__VA_ARGS__)
+#define LOG_DEBUG(fmt, ...) BR_LOG_CALL(DEBUG, fmt, ##__VA_ARGS__)
+#define LOG_INFO(fmt, ...) BR_LOG_CALL(INFO, fmt, ##__VA_ARGS__)
+#define LOG_WARN(fmt, ...) BR_LOG_CALL(WARN, fmt, ##__VA_ARGS__)
+#define LOG_ERROR(fmt, ...) BR_LOG_CALL(ERROR, fmt, ##__VA_ARGS__)
+#define LOG_FATAL(fmt, ...) BR_LOG_CALL(FATAL, fmt, ##__VA_ARGS__)
 
 // Conditional logging
 #define LOG_INFO_IF(cond, fmt, ...)         \

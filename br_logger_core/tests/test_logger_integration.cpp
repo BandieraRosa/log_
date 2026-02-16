@@ -27,7 +27,7 @@ class LoggerIntegrationTest : public ::testing::Test
             captured_.push_back(entry);
           });
       logger.AddSink(std::move(cb));
-      logger.SetLevel(br_logger::LogLevel::Trace);
+      logger.SetLevel(br_logger::LogLevel::TRACE);
       setup_done_ = true;
     }
   }
@@ -36,10 +36,10 @@ class LoggerIntegrationTest : public ::testing::Test
   {
     std::lock_guard<std::mutex> lock(captured_mutex_);
     captured_.clear();
-    br_logger::Logger::Instance().SetLevel(br_logger::LogLevel::Trace);
+    br_logger::Logger::Instance().SetLevel(br_logger::LogLevel::TRACE);
   }
 
-  void drain_all() { br_logger::Logger::Instance().Drain(1024); }
+  void DrainAll() { br_logger::Logger::Instance().Drain(1024); }
 };
 
 std::vector<br_logger::LogEntry> LoggerIntegrationTest::captured_;
@@ -49,31 +49,31 @@ bool LoggerIntegrationTest::setup_done_ = false;
 TEST_F(LoggerIntegrationTest, LogInfoBasic)
 {
   LOG_INFO("hello %s", "world");
-  drain_all();
+  DrainAll();
 
   ASSERT_EQ(captured_.size(), 1u);
   EXPECT_STREQ(captured_[0].msg, "hello world");
-  EXPECT_EQ(captured_[0].level, br_logger::LogLevel::Info);
+  EXPECT_EQ(captured_[0].level, br_logger::LogLevel::INFO);
 }
 
 TEST_F(LoggerIntegrationTest, LogLevelFiltering)
 {
-  br_logger::Logger::Instance().SetLevel(br_logger::LogLevel::Warn);
+  br_logger::Logger::Instance().SetLevel(br_logger::LogLevel::WARN);
 
   LOG_INFO("should not appear");
-  drain_all();
+  DrainAll();
   EXPECT_EQ(captured_.size(), 0u);
 
   LOG_WARN("should appear");
-  drain_all();
+  DrainAll();
   ASSERT_EQ(captured_.size(), 1u);
-  EXPECT_EQ(captured_[0].level, br_logger::LogLevel::Warn);
+  EXPECT_EQ(captured_[0].level, br_logger::LogLevel::WARN);
 
-  br_logger::Logger::Instance().SetLevel(br_logger::LogLevel::Trace);
+  br_logger::Logger::Instance().SetLevel(br_logger::LogLevel::TRACE);
   captured_.clear();
 
   LOG_TRACE("trace visible");
-  drain_all();
+  DrainAll();
   ASSERT_EQ(captured_.size(), 1u);
   EXPECT_STREQ(captured_[0].msg, "trace visible");
 }
@@ -90,7 +90,7 @@ TEST_F(LoggerIntegrationTest, SequenceIdIncrement)
   LOG_INFO("seq1");
   LOG_INFO("seq2");
   LOG_INFO("seq3");
-  drain_all();
+  DrainAll();
 
   ASSERT_EQ(captured_.size(), 3u);
   EXPECT_LT(captured_[0].sequence_id, captured_[1].sequence_id);
@@ -100,7 +100,7 @@ TEST_F(LoggerIntegrationTest, SequenceIdIncrement)
 TEST_F(LoggerIntegrationTest, SourceLocation)
 {
   LOG_INFO("location test");
-  drain_all();
+  DrainAll();
 
   ASSERT_EQ(captured_.size(), 1u);
   EXPECT_NE(captured_[0].file_name, nullptr);
@@ -114,31 +114,31 @@ TEST_F(LoggerIntegrationTest, SourceLocation)
 TEST_F(LoggerIntegrationTest, LogWarn)
 {
   LOG_WARN("warning %d", 42);
-  drain_all();
+  DrainAll();
 
   ASSERT_EQ(captured_.size(), 1u);
-  EXPECT_EQ(captured_[0].level, br_logger::LogLevel::Warn);
+  EXPECT_EQ(captured_[0].level, br_logger::LogLevel::WARN);
   EXPECT_STREQ(captured_[0].msg, "warning 42");
 }
 
 TEST_F(LoggerIntegrationTest, LogError)
 {
   LOG_ERROR("error occurred: %s", "timeout");
-  drain_all();
+  DrainAll();
 
   ASSERT_EQ(captured_.size(), 1u);
-  EXPECT_EQ(captured_[0].level, br_logger::LogLevel::Error);
+  EXPECT_EQ(captured_[0].level, br_logger::LogLevel::ERROR);
   EXPECT_STREQ(captured_[0].msg, "error occurred: timeout");
 }
 
 TEST_F(LoggerIntegrationTest, ConditionalLog)
 {
   LOG_INFO_IF(false, "should not appear");
-  drain_all();
+  DrainAll();
   EXPECT_EQ(captured_.size(), 0u);
 
   LOG_INFO_IF(true, "should appear");
-  drain_all();
+  DrainAll();
   ASSERT_EQ(captured_.size(), 1u);
   EXPECT_STREQ(captured_[0].msg, "should appear");
 }
@@ -147,9 +147,9 @@ TEST_F(LoggerIntegrationTest, LogOnce)
 {
   for (int i = 0; i < 5; ++i)
   {
-    LOG_ONCE(Info, "only once");
+    LOG_ONCE(INFO, "only once");
   }
-  drain_all();
+  DrainAll();
 
   EXPECT_EQ(captured_.size(), 1u);
 }
@@ -166,37 +166,37 @@ TEST_F(LoggerIntegrationTest, DrainManual)
 TEST_F(LoggerIntegrationTest, LogTrace)
 {
   LOG_TRACE("trace msg");
-  drain_all();
+  DrainAll();
 
   ASSERT_EQ(captured_.size(), 1u);
-  EXPECT_EQ(captured_[0].level, br_logger::LogLevel::Trace);
+  EXPECT_EQ(captured_[0].level, br_logger::LogLevel::TRACE);
   EXPECT_STREQ(captured_[0].msg, "trace msg");
 }
 
 TEST_F(LoggerIntegrationTest, LogDebug)
 {
   LOG_DEBUG("debug msg %d", 99);
-  drain_all();
+  DrainAll();
 
   ASSERT_EQ(captured_.size(), 1u);
-  EXPECT_EQ(captured_[0].level, br_logger::LogLevel::Debug);
+  EXPECT_EQ(captured_[0].level, br_logger::LogLevel::DEBUG);
   EXPECT_STREQ(captured_[0].msg, "debug msg 99");
 }
 
 TEST_F(LoggerIntegrationTest, LogFatal)
 {
   LOG_FATAL("fatal error");
-  drain_all();
+  DrainAll();
 
   ASSERT_EQ(captured_.size(), 1u);
-  EXPECT_EQ(captured_[0].level, br_logger::LogLevel::Fatal);
+  EXPECT_EQ(captured_[0].level, br_logger::LogLevel::FATAL);
   EXPECT_STREQ(captured_[0].msg, "fatal error");
 }
 
 TEST_F(LoggerIntegrationTest, TimestampsPopulated)
 {
   LOG_INFO("timestamp check");
-  drain_all();
+  DrainAll();
 
   ASSERT_EQ(captured_.size(), 1u);
   EXPECT_GT(captured_[0].timestamp_ns, 0u);
@@ -206,7 +206,7 @@ TEST_F(LoggerIntegrationTest, TimestampsPopulated)
 TEST_F(LoggerIntegrationTest, ThreadInfoPopulated)
 {
   LOG_INFO("thread check");
-  drain_all();
+  DrainAll();
 
   ASSERT_EQ(captured_.size(), 1u);
   EXPECT_GT(captured_[0].thread_id, 0u);
@@ -216,31 +216,31 @@ TEST_F(LoggerIntegrationTest, ThreadInfoPopulated)
 TEST_F(LoggerIntegrationTest, ConditionalWarn)
 {
   LOG_WARN_IF(false, "no warn");
-  drain_all();
+  DrainAll();
   EXPECT_EQ(captured_.size(), 0u);
 
   LOG_WARN_IF(true, "yes warn");
-  drain_all();
+  DrainAll();
   ASSERT_EQ(captured_.size(), 1u);
-  EXPECT_EQ(captured_[0].level, br_logger::LogLevel::Warn);
+  EXPECT_EQ(captured_[0].level, br_logger::LogLevel::WARN);
 }
 
 TEST_F(LoggerIntegrationTest, ConditionalError)
 {
   LOG_ERROR_IF(false, "no error");
-  drain_all();
+  DrainAll();
   EXPECT_EQ(captured_.size(), 0u);
 
   LOG_ERROR_IF(true, "yes error");
-  drain_all();
+  DrainAll();
   ASSERT_EQ(captured_.size(), 1u);
-  EXPECT_EQ(captured_[0].level, br_logger::LogLevel::Error);
+  EXPECT_EQ(captured_[0].level, br_logger::LogLevel::ERROR);
 }
 
 TEST_F(LoggerIntegrationTest, NoArgsFormat)
 {
   LOG_INFO("plain message no args");
-  drain_all();
+  DrainAll();
 
   ASSERT_EQ(captured_.size(), 1u);
   EXPECT_STREQ(captured_[0].msg, "plain message no args");
@@ -249,7 +249,7 @@ TEST_F(LoggerIntegrationTest, NoArgsFormat)
 TEST_F(LoggerIntegrationTest, MultipleArgsFormat)
 {
   LOG_INFO("a=%d b=%s c=%.1f", 1, "two", 3.0);
-  drain_all();
+  DrainAll();
 
   ASSERT_EQ(captured_.size(), 1u);
   EXPECT_STREQ(captured_[0].msg, "a=1 b=two c=3.0");

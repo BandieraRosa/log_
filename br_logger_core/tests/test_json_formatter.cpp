@@ -17,7 +17,7 @@ static LogEntry make_test_entry()
   LogEntry entry{};
   entry.wall_clock_ns = 1739692200123456000ULL;
   entry.timestamp_ns = 123456789ULL;
-  entry.level = LogLevel::Info;
+  entry.level = LogLevel::INFO;
   entry.file_path = "/src/main.cpp";
   entry.file_name = "main.cpp";
   entry.function_name = "process";
@@ -176,13 +176,13 @@ TEST(JsonFormatter, AllLevels)
 {
   auto entry = make_test_entry();
   auto level_pairs = std::array<std::pair<LogLevel, const char*>, 7>{
-      std::pair<LogLevel, const char*>{LogLevel::Trace, "TRACE"},
-      std::pair<LogLevel, const char*>{LogLevel::Debug, "DEBUG"},
-      std::pair<LogLevel, const char*>{LogLevel::Info, "INFO"},
-      std::pair<LogLevel, const char*>{LogLevel::Warn, "WARN"},
-      std::pair<LogLevel, const char*>{LogLevel::Error, "ERROR"},
-      std::pair<LogLevel, const char*>{LogLevel::Fatal, "FATAL"},
-      std::pair<LogLevel, const char*>{LogLevel::Off, "OFF"}};
+      std::pair<LogLevel, const char*>{LogLevel::TRACE, "TRACE"},
+      std::pair<LogLevel, const char*>{LogLevel::DEBUG, "DEBUG"},
+      std::pair<LogLevel, const char*>{LogLevel::INFO, "INFO"},
+      std::pair<LogLevel, const char*>{LogLevel::WARN, "WARN"},
+      std::pair<LogLevel, const char*>{LogLevel::ERROR, "ERROR"},
+      std::pair<LogLevel, const char*>{LogLevel::FATAL, "FATAL"},
+      std::pair<LogLevel, const char*>{LogLevel::OFF, "OFF"}};
   for (const auto& item : level_pairs)
   {
     entry.level = item.first;

@@ -18,7 +18,10 @@ struct SourceLocation
     const char* name = path;
     for (const char* p = path; *p != '\0'; ++p)
     {
-      if (*p == '/' || *p == '\\') name = p + 1;
+      if (*p == '/' || *p == '\\')
+      {
+        name = p + 1;
+      }
     }
     return name;
   }

@@ -16,7 +16,7 @@ class MPSCRingBuffer
   static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
 
  public:
-  MPSCRingBuffer() : write_pos_(0), read_pos_(0)
+  MPSCRingBuffer() : write_pos_(0)
   {
     for (uint32_t i = 0; i < Capacity; ++i)
     {
@@ -81,7 +81,7 @@ class MPSCRingBuffer
 
   alignas(BR_LOG_CACHELINE_SIZE) Slot buffer_[Capacity];
   alignas(BR_LOG_CACHELINE_SIZE) std::atomic<uint32_t> write_pos_;
-  alignas(BR_LOG_CACHELINE_SIZE) uint32_t read_pos_;
+  alignas(BR_LOG_CACHELINE_SIZE) uint32_t read_pos_{};
 };
 
 }  // namespace br_logger

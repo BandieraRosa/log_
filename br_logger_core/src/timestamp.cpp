@@ -20,7 +20,7 @@ uint64_t wall_clock_now_ns() { return br_log_wall_clock_ns(); }
 
 #elif defined(BR_LOG_PLATFORM_LINUX)
 
-#include <time.h>
+#include <ctime>
 
 namespace br_logger
 {
@@ -115,9 +115,12 @@ static void decompose_wall_ns(uint64_t wall_ns, struct tm& tm_out, uint32_t& us_
 
 size_t format_timestamp(uint64_t wall_ns, char* buf, size_t buf_size)
 {
-  if (buf_size == 0) return 0;
+  if (buf_size == 0)
+  {
+    return 0;
+  }
   struct tm tm_val{};
-  uint32_t us;
+  uint32_t us = 0;
   decompose_wall_ns(wall_ns, tm_val, us);
   int n = snprintf(buf, buf_size, "%04d-%02d-%02d %02d:%02d:%02d.%06u",
                    tm_val.tm_year + 1900, tm_val.tm_mon + 1, tm_val.tm_mday,
@@ -128,9 +131,12 @@ size_t format_timestamp(uint64_t wall_ns, char* buf, size_t buf_size)
 
 size_t format_date(uint64_t wall_ns, char* buf, size_t buf_size)
 {
-  if (buf_size == 0) return 0;
+  if (buf_size == 0)
+  {
+    return 0;
+  }
   struct tm tm_val{};
-  uint32_t us;
+  uint32_t us = 0;
   decompose_wall_ns(wall_ns, tm_val, us);
   int n = snprintf(buf, buf_size, "%04d-%02d-%02d", tm_val.tm_year + 1900,
                    tm_val.tm_mon + 1, tm_val.tm_mday);
@@ -140,9 +146,12 @@ size_t format_date(uint64_t wall_ns, char* buf, size_t buf_size)
 
 size_t format_time(uint64_t wall_ns, char* buf, size_t buf_size)
 {
-  if (buf_size == 0) return 0;
+  if (buf_size == 0)
+  {
+    return 0;
+  }
   struct tm tm_val{};
-  uint32_t us;
+  uint32_t us = 0;
   decompose_wall_ns(wall_ns, tm_val, us);
   int n = snprintf(buf, buf_size, "%02d:%02d:%02d.%06u", tm_val.tm_hour, tm_val.tm_min,
                    tm_val.tm_sec, us);

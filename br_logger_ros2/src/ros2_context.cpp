@@ -42,7 +42,10 @@ ROS2ContextProvider::ROS2ContextProvider(rclcpp::Node::SharedPtr node)
     const char* name = exe_path;
     for (const char* p = exe_path; *p != '\0'; ++p)
     {
-      if (*p == '/') name = p + 1;
+      if (*p == '/')
+      {
+        name = p + 1;
+      }
     }
     ctx.SetGlobalTag("ros.executable", name);
   }

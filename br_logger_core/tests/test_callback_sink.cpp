@@ -9,7 +9,7 @@
 #include "../include/br_logger/sinks/callback_sink.hpp"
 
 static br_logger::LogEntry make_test_entry(
-    br_logger::LogLevel level = br_logger::LogLevel::Info,
+    br_logger::LogLevel level = br_logger::LogLevel::INFO,
     const char* msg = "test message")
 {
   br_logger::LogEntry entry{};
@@ -47,10 +47,10 @@ TEST(CallbackSink, LogEntryFieldsPassedCorrectly)
   br_logger::LogEntry captured{};
   br_logger::CallbackSink sink([&](const br_logger::LogEntry& e) { captured = e; });
 
-  auto entry = make_test_entry(br_logger::LogLevel::Warn, "hello world");
+  auto entry = make_test_entry(br_logger::LogLevel::WARN, "hello world");
   sink.Write(entry);
 
-  EXPECT_EQ(captured.level, br_logger::LogLevel::Warn);
+  EXPECT_EQ(captured.level, br_logger::LogLevel::WARN);
   EXPECT_EQ(std::string(captured.msg, captured.msg_len), "hello world");
   EXPECT_EQ(captured.thread_id, 1234u);
   EXPECT_EQ(captured.line, 42u);
@@ -76,9 +76,9 @@ TEST(CallbackSink, LevelFilteringBlocksLowLevel)
 {
   bool called = false;
   br_logger::CallbackSink sink([&](const br_logger::LogEntry&) { called = true; });
-  sink.SetLevel(br_logger::LogLevel::Warn);
+  sink.SetLevel(br_logger::LogLevel::WARN);
 
-  auto entry = make_test_entry(br_logger::LogLevel::Info);
+  auto entry = make_test_entry(br_logger::LogLevel::INFO);
   sink.Write(entry);
   EXPECT_FALSE(called);
 }
@@ -87,9 +87,9 @@ TEST(CallbackSink, LevelFilteringAllowsHighLevel)
 {
   bool called = false;
   br_logger::CallbackSink sink([&](const br_logger::LogEntry&) { called = true; });
-  sink.SetLevel(br_logger::LogLevel::Warn);
+  sink.SetLevel(br_logger::LogLevel::WARN);
 
-  auto entry = make_test_entry(br_logger::LogLevel::Error);
+  auto entry = make_test_entry(br_logger::LogLevel::ERROR);
   sink.Write(entry);
   EXPECT_TRUE(called);
 }
@@ -98,9 +98,9 @@ TEST(CallbackSink, LevelFilteringAllowsExactLevel)
 {
   bool called = false;
   br_logger::CallbackSink sink([&](const br_logger::LogEntry&) { called = true; });
-  sink.SetLevel(br_logger::LogLevel::Warn);
+  sink.SetLevel(br_logger::LogLevel::WARN);
 
-  auto entry = make_test_entry(br_logger::LogLevel::Warn);
+  auto entry = make_test_entry(br_logger::LogLevel::WARN);
   sink.Write(entry);
   EXPECT_TRUE(called);
 }
@@ -111,9 +111,9 @@ TEST(CallbackSink, AccumulatorCallback)
   br_logger::CallbackSink sink([&](const br_logger::LogEntry& e)
                                { messages.emplace_back(e.msg, e.msg_len); });
 
-  sink.Write(make_test_entry(br_logger::LogLevel::Info, "msg1"));
-  sink.Write(make_test_entry(br_logger::LogLevel::Info, "msg2"));
-  sink.Write(make_test_entry(br_logger::LogLevel::Info, "msg3"));
+  sink.Write(make_test_entry(br_logger::LogLevel::INFO, "msg1"));
+  sink.Write(make_test_entry(br_logger::LogLevel::INFO, "msg2"));
+  sink.Write(make_test_entry(br_logger::LogLevel::INFO, "msg3"));
 
   ASSERT_EQ(messages.size(), 3u);
   EXPECT_EQ(messages[0], "msg1");
@@ -145,5 +145,5 @@ TEST(CallbackSink, FlushDoesNotCrash)
 TEST(CallbackSink, DefaultLevelIsTrace)
 {
   br_logger::CallbackSink sink([](const br_logger::LogEntry&) {});
-  EXPECT_EQ(sink.Level(), br_logger::LogLevel::Trace);
+  EXPECT_EQ(sink.Level(), br_logger::LogLevel::TRACE);
 }

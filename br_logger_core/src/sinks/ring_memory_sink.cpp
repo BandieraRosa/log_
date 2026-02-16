@@ -68,7 +68,7 @@ size_t RingMemorySink::Size() const { return count_; }
 
 const LogEntry& RingMemorySink::At(size_t index) const
 {
-  size_t start;
+  size_t start = 0;
   if (count_ < capacity_)
   {
     start = 0;

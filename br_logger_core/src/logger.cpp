@@ -24,14 +24,20 @@ LogLevel Logger::Level() const { return level_.load(std::memory_order_relaxed); 
 
 void Logger::Start()
 {
-  if (started_) return;
+  if (started_)
+  {
+    return;
+  }
   backend_.Start();
   started_ = true;
 }
 
 void Logger::Stop()
 {
-  if (!started_) return;
+  if (!started_)
+  {
+    return;
+  }
   backend_.Stop();
   started_ = false;
 }

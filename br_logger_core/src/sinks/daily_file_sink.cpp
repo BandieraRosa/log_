@@ -115,7 +115,10 @@ void DailyFileSink::OpenFileForToday()
 void DailyFileSink::CleanupOldFiles()
 {
   DIR* dir = ::opendir(base_dir_.c_str());
-  if (!dir) return;
+  if (!dir)
+  {
+    return;
+  }
 
   std::string prefix = base_name_ + "_";
   std::string suffix = ".log";
@@ -123,13 +126,22 @@ void DailyFileSink::CleanupOldFiles()
   std::time_t now = std::time(nullptr);
   double max_seconds = static_cast<double>(max_days_) * 86400.0;
 
-  struct dirent* ent;
+  struct dirent* ent = nullptr;
   while ((ent = ::readdir(dir)) != nullptr)
   {
     std::string name(ent->d_name);
-    if (name.size() < prefix.size() + suffix.size()) continue;
-    if (name.compare(0, prefix.size(), prefix) != 0) continue;
-    if (name.compare(name.size() - suffix.size(), suffix.size(), suffix) != 0) continue;
+    if (name.size() < prefix.size() + suffix.size())
+    {
+      continue;
+    }
+    if (name.compare(0, prefix.size(), prefix) != 0)
+    {
+      continue;
+    }
+    if (name.compare(name.size() - suffix.size(), suffix.size(), suffix) != 0)
+    {
+      continue;
+    }
 
     std::string full_path = base_dir_;
     if (!full_path.empty() && full_path.back() != '/')

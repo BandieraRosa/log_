@@ -17,7 +17,7 @@
 #endif
 
 static br_logger::LogEntry make_test_entry(
-    br_logger::LogLevel level = br_logger::LogLevel::Info,
+    br_logger::LogLevel level = br_logger::LogLevel::INFO,
     const char* msg = "test message")
 {
   br_logger::LogEntry entry{};
@@ -33,7 +33,10 @@ static br_logger::LogEntry make_test_entry(
   entry.tag_count = 0;
   entry.sequence_id = 0;
   size_t len = std::strlen(msg);
-  if (len >= BR_LOG_MAX_MSG_LEN) len = BR_LOG_MAX_MSG_LEN - 1;
+  if (len >= BR_LOG_MAX_MSG_LEN)
+  {
+    len = BR_LOG_MAX_MSG_LEN - 1;
+  }
   std::memcpy(entry.msg, msg, len);
   entry.msg[len] = '\0';
   entry.msg_len = static_cast<uint16_t>(len);
@@ -48,8 +51,8 @@ TEST(LoggerBackend, PushAndDrain)
       [&](const br_logger::LogEntry& e) { received.emplace_back(e.msg, e.msg_len); });
   backend->AddSink(std::move(sink));
 
-  backend->TryPush(make_test_entry(br_logger::LogLevel::Info, "hello"));
-  backend->TryPush(make_test_entry(br_logger::LogLevel::Warn, "world"));
+  backend->TryPush(make_test_entry(br_logger::LogLevel::INFO, "hello"));
+  backend->TryPush(make_test_entry(br_logger::LogLevel::WARN, "world"));
 
   size_t drained = backend->Drain();
   EXPECT_EQ(drained, 2u);
@@ -76,7 +79,7 @@ TEST(LoggerBackend, DrainMaxEntries)
   EXPECT_EQ(count.load(), 10);
 
   size_t rest = 0;
-  size_t batch;
+  size_t batch = 0;
   while ((batch = backend->Drain(64)) > 0)
   {
     rest += batch;

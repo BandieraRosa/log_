@@ -16,7 +16,7 @@
 #endif
 
 static br_logger::LogEntry make_test_entry(
-    br_logger::LogLevel level = br_logger::LogLevel::Info)
+    br_logger::LogLevel level = br_logger::LogLevel::INFO)
 {
   br_logger::LogEntry entry{};
   entry.wall_clock_ns = 1739692200123456000ULL;
@@ -48,7 +48,10 @@ class MockFormatter : public br_logger::IFormatter
   {
     last_formatted = std::string(entry.msg, entry.msg_len);
     size_t len = last_formatted.size();
-    if (len >= buf_size) len = buf_size - 1;
+    if (len >= buf_size)
+    {
+      len = buf_size - 1;
+    }
     std::memcpy(buf, last_formatted.c_str(), len);
     buf[len] = '\0';
     return len;
@@ -58,53 +61,53 @@ class MockFormatter : public br_logger::IFormatter
 TEST(ConsoleSink, DefaultConstruction)
 {
   br_logger::ConsoleSink sink;
-  EXPECT_EQ(sink.Level(), br_logger::LogLevel::Trace);
+  EXPECT_EQ(sink.Level(), br_logger::LogLevel::TRACE);
 }
 
 TEST(ConsoleSink, ForceColorTrue)
 {
   br_logger::ConsoleSink sink(true);
-  EXPECT_EQ(sink.Level(), br_logger::LogLevel::Trace);
+  EXPECT_EQ(sink.Level(), br_logger::LogLevel::TRACE);
 }
 
 TEST(ConsoleSink, ForceColorFalse)
 {
   br_logger::ConsoleSink sink(false);
-  EXPECT_EQ(sink.Level(), br_logger::LogLevel::Trace);
+  EXPECT_EQ(sink.Level(), br_logger::LogLevel::TRACE);
 }
 
 TEST(ConsoleSink, ForceColorNullopt)
 {
   br_logger::ConsoleSink sink(std::nullopt);
-  EXPECT_EQ(sink.Level(), br_logger::LogLevel::Trace);
+  EXPECT_EQ(sink.Level(), br_logger::LogLevel::TRACE);
 }
 
 TEST(ConsoleSink, SetLevel)
 {
   br_logger::ConsoleSink sink(false);
-  sink.SetLevel(br_logger::LogLevel::Warn);
-  EXPECT_EQ(sink.Level(), br_logger::LogLevel::Warn);
+  sink.SetLevel(br_logger::LogLevel::WARN);
+  EXPECT_EQ(sink.Level(), br_logger::LogLevel::WARN);
 }
 
 TEST(ConsoleSink, ShouldLogFiltering)
 {
   br_logger::ConsoleSink sink(false);
-  sink.SetLevel(br_logger::LogLevel::Warn);
+  sink.SetLevel(br_logger::LogLevel::WARN);
 
-  EXPECT_FALSE(sink.ShouldLog(br_logger::LogLevel::Trace));
-  EXPECT_FALSE(sink.ShouldLog(br_logger::LogLevel::Debug));
-  EXPECT_FALSE(sink.ShouldLog(br_logger::LogLevel::Info));
-  EXPECT_TRUE(sink.ShouldLog(br_logger::LogLevel::Warn));
-  EXPECT_TRUE(sink.ShouldLog(br_logger::LogLevel::Error));
-  EXPECT_TRUE(sink.ShouldLog(br_logger::LogLevel::Fatal));
+  EXPECT_FALSE(sink.ShouldLog(br_logger::LogLevel::TRACE));
+  EXPECT_FALSE(sink.ShouldLog(br_logger::LogLevel::DEBUG));
+  EXPECT_FALSE(sink.ShouldLog(br_logger::LogLevel::INFO));
+  EXPECT_TRUE(sink.ShouldLog(br_logger::LogLevel::WARN));
+  EXPECT_TRUE(sink.ShouldLog(br_logger::LogLevel::ERROR));
+  EXPECT_TRUE(sink.ShouldLog(br_logger::LogLevel::FATAL));
 }
 
 TEST(ConsoleSink, WriteFilteredByLevel)
 {
   br_logger::ConsoleSink sink(false);
-  sink.SetLevel(br_logger::LogLevel::Warn);
+  sink.SetLevel(br_logger::LogLevel::WARN);
 
-  auto entry = make_test_entry(br_logger::LogLevel::Info);
+  auto entry = make_test_entry(br_logger::LogLevel::INFO);
   sink.Write(entry);
 }
 
@@ -121,7 +124,7 @@ TEST(ConsoleSink, SetFormatterCustom)
   auto* mock_ptr = mock.get();
   sink.SetFormatter(std::move(mock));
 
-  auto entry = make_test_entry(br_logger::LogLevel::Info);
+  auto entry = make_test_entry(br_logger::LogLevel::INFO);
   sink.Write(entry);
   EXPECT_EQ(mock_ptr->last_formatted, "test message");
 }
@@ -129,11 +132,11 @@ TEST(ConsoleSink, SetFormatterCustom)
 TEST(ConsoleSink, DefaultFormatterCreatedOnFirstWrite)
 {
   br_logger::ConsoleSink sink(false);
-  auto entry = make_test_entry(br_logger::LogLevel::Info);
+  auto entry = make_test_entry(br_logger::LogLevel::INFO);
   EXPECT_NO_THROW(sink.Write(entry));
 }
 
-static std::string capture_fd_output(int fd, std::function<void()> action)
+static std::string capture_fd_output(int fd, const std::function<void()>& action)
 {
   int pipefd[2];
   EXPECT_EQ(pipe(pipefd), 0);
@@ -165,7 +168,7 @@ static std::string capture_fd_output(int fd, std::function<void()> action)
 TEST(ConsoleSink, WriteInfoToStdout)
 {
   br_logger::ConsoleSink sink(false);
-  auto entry = make_test_entry(br_logger::LogLevel::Info);
+  auto entry = make_test_entry(br_logger::LogLevel::INFO);
 
   std::string stdout_output =
       capture_fd_output(STDOUT_FILENO, [&]() { sink.Write(entry); });
@@ -177,7 +180,7 @@ TEST(ConsoleSink, WriteInfoToStdout)
 TEST(ConsoleSink, WriteTraceToStdout)
 {
   br_logger::ConsoleSink sink(false);
-  auto entry = make_test_entry(br_logger::LogLevel::Trace);
+  auto entry = make_test_entry(br_logger::LogLevel::TRACE);
 
   std::string stdout_output =
       capture_fd_output(STDOUT_FILENO, [&]() { sink.Write(entry); });
@@ -189,7 +192,7 @@ TEST(ConsoleSink, WriteTraceToStdout)
 TEST(ConsoleSink, WriteDebugToStdout)
 {
   br_logger::ConsoleSink sink(false);
-  auto entry = make_test_entry(br_logger::LogLevel::Debug);
+  auto entry = make_test_entry(br_logger::LogLevel::DEBUG);
 
   std::string stdout_output =
       capture_fd_output(STDOUT_FILENO, [&]() { sink.Write(entry); });
@@ -200,7 +203,7 @@ TEST(ConsoleSink, WriteDebugToStdout)
 TEST(ConsoleSink, WriteWarnToStderr)
 {
   br_logger::ConsoleSink sink(false);
-  auto entry = make_test_entry(br_logger::LogLevel::Warn);
+  auto entry = make_test_entry(br_logger::LogLevel::WARN);
 
   std::string stderr_output =
       capture_fd_output(STDERR_FILENO, [&]() { sink.Write(entry); });
@@ -212,7 +215,7 @@ TEST(ConsoleSink, WriteWarnToStderr)
 TEST(ConsoleSink, WriteErrorToStderr)
 {
   br_logger::ConsoleSink sink(false);
-  auto entry = make_test_entry(br_logger::LogLevel::Error);
+  auto entry = make_test_entry(br_logger::LogLevel::ERROR);
 
   std::string stderr_output =
       capture_fd_output(STDERR_FILENO, [&]() { sink.Write(entry); });
@@ -224,7 +227,7 @@ TEST(ConsoleSink, WriteErrorToStderr)
 TEST(ConsoleSink, WriteFatalToStderr)
 {
   br_logger::ConsoleSink sink(false);
-  auto entry = make_test_entry(br_logger::LogLevel::Fatal);
+  auto entry = make_test_entry(br_logger::LogLevel::FATAL);
 
   std::string stderr_output =
       capture_fd_output(STDERR_FILENO, [&]() { sink.Write(entry); });
@@ -236,7 +239,7 @@ TEST(ConsoleSink, WriteFatalToStderr)
 TEST(ConsoleSink, WarnNotOnStdout)
 {
   br_logger::ConsoleSink sink(false);
-  auto entry = make_test_entry(br_logger::LogLevel::Warn);
+  auto entry = make_test_entry(br_logger::LogLevel::WARN);
 
   std::string stdout_output =
       capture_fd_output(STDOUT_FILENO, [&]() { sink.Write(entry); });
@@ -247,7 +250,7 @@ TEST(ConsoleSink, WarnNotOnStdout)
 TEST(ConsoleSink, InfoNotOnStderr)
 {
   br_logger::ConsoleSink sink(false);
-  auto entry = make_test_entry(br_logger::LogLevel::Info);
+  auto entry = make_test_entry(br_logger::LogLevel::INFO);
 
   std::string stderr_output =
       capture_fd_output(STDERR_FILENO, [&]() { sink.Write(entry); });
@@ -258,7 +261,7 @@ TEST(ConsoleSink, InfoNotOnStderr)
 TEST(ConsoleSink, ColorEnabledOutput)
 {
   br_logger::ConsoleSink sink(true);
-  auto entry = make_test_entry(br_logger::LogLevel::Info);
+  auto entry = make_test_entry(br_logger::LogLevel::INFO);
 
   std::string stdout_output =
       capture_fd_output(STDOUT_FILENO, [&]() { sink.Write(entry); });
@@ -269,7 +272,7 @@ TEST(ConsoleSink, ColorEnabledOutput)
 TEST(ConsoleSink, ColorDisabledOutput)
 {
   br_logger::ConsoleSink sink(false);
-  auto entry = make_test_entry(br_logger::LogLevel::Info);
+  auto entry = make_test_entry(br_logger::LogLevel::INFO);
 
   std::string stdout_output =
       capture_fd_output(STDOUT_FILENO, [&]() { sink.Write(entry); });

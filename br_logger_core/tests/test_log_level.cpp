@@ -8,43 +8,43 @@ using br_logger::to_string;
 
 TEST(LogLevel, ToStringReturnsCorrectValues)
 {
-  static_assert(to_string(LogLevel::Trace) == "TRACE");
-  static_assert(to_string(LogLevel::Debug) == "DEBUG");
-  static_assert(to_string(LogLevel::Info) == "INFO");
-  static_assert(to_string(LogLevel::Warn) == "WARN");
-  static_assert(to_string(LogLevel::Error) == "ERROR");
-  static_assert(to_string(LogLevel::Fatal) == "FATAL");
-  static_assert(to_string(LogLevel::Off) == "OFF");
+  static_assert(to_string(LogLevel::TRACE) == "TRACE");
+  static_assert(to_string(LogLevel::DEBUG) == "DEBUG");
+  static_assert(to_string(LogLevel::INFO) == "INFO");
+  static_assert(to_string(LogLevel::WARN) == "WARN");
+  static_assert(to_string(LogLevel::ERROR) == "ERROR");
+  static_assert(to_string(LogLevel::FATAL) == "FATAL");
+  static_assert(to_string(LogLevel::OFF) == "OFF");
 
-  EXPECT_EQ(to_string(LogLevel::Info), "INFO");
+  EXPECT_EQ(to_string(LogLevel::INFO), "INFO");
 }
 
 TEST(LogLevel, ToShortCharReturnsCorrectValues)
 {
-  static_assert(to_short_char(LogLevel::Trace) == 'T');
-  static_assert(to_short_char(LogLevel::Debug) == 'D');
-  static_assert(to_short_char(LogLevel::Info) == 'I');
-  static_assert(to_short_char(LogLevel::Warn) == 'W');
-  static_assert(to_short_char(LogLevel::Error) == 'E');
-  static_assert(to_short_char(LogLevel::Fatal) == 'F');
+  static_assert(to_short_char(LogLevel::TRACE) == 'T');
+  static_assert(to_short_char(LogLevel::DEBUG) == 'D');
+  static_assert(to_short_char(LogLevel::INFO) == 'I');
+  static_assert(to_short_char(LogLevel::WARN) == 'W');
+  static_assert(to_short_char(LogLevel::ERROR) == 'E');
+  static_assert(to_short_char(LogLevel::FATAL) == 'F');
 
-  EXPECT_EQ(to_short_char(LogLevel::Error), 'E');
+  EXPECT_EQ(to_short_char(LogLevel::ERROR), 'E');
 }
 
 TEST(LogLevel, EnumValuesAreOrdered)
 {
-  static_assert(static_cast<uint8_t>(LogLevel::Trace) <
-                static_cast<uint8_t>(LogLevel::Debug));
-  static_assert(static_cast<uint8_t>(LogLevel::Debug) <
-                static_cast<uint8_t>(LogLevel::Info));
-  static_assert(static_cast<uint8_t>(LogLevel::Info) <
-                static_cast<uint8_t>(LogLevel::Warn));
-  static_assert(static_cast<uint8_t>(LogLevel::Warn) <
-                static_cast<uint8_t>(LogLevel::Error));
-  static_assert(static_cast<uint8_t>(LogLevel::Error) <
-                static_cast<uint8_t>(LogLevel::Fatal));
-  static_assert(static_cast<uint8_t>(LogLevel::Fatal) <
-                static_cast<uint8_t>(LogLevel::Off));
+  static_assert(static_cast<uint8_t>(LogLevel::TRACE) <
+                static_cast<uint8_t>(LogLevel::DEBUG));
+  static_assert(static_cast<uint8_t>(LogLevel::DEBUG) <
+                static_cast<uint8_t>(LogLevel::INFO));
+  static_assert(static_cast<uint8_t>(LogLevel::INFO) <
+                static_cast<uint8_t>(LogLevel::WARN));
+  static_assert(static_cast<uint8_t>(LogLevel::WARN) <
+                static_cast<uint8_t>(LogLevel::ERROR));
+  static_assert(static_cast<uint8_t>(LogLevel::ERROR) <
+                static_cast<uint8_t>(LogLevel::FATAL));
+  static_assert(static_cast<uint8_t>(LogLevel::FATAL) <
+                static_cast<uint8_t>(LogLevel::OFF));
 
   EXPECT_TRUE(true);
 }

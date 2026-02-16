@@ -8,13 +8,12 @@
 #include <sstream>
 #include <string>
 
-#include "../include/br_logger/formatters/pattern_formatter.hpp"
 #include "../include/br_logger/log_entry.hpp"
 #include "../include/br_logger/log_level.hpp"
 #include "../include/br_logger/sinks/ring_memory_sink.hpp"
 
 static br_logger::LogEntry make_test_entry(
-    br_logger::LogLevel level = br_logger::LogLevel::Info,
+    br_logger::LogLevel level = br_logger::LogLevel::INFO,
     const char* msg = "test message", uint64_t seq = 1001)
 {
   br_logger::LogEntry entry{};
@@ -58,7 +57,7 @@ class RingMemorySinkTest : public ::testing::Test
     rmdir(tmp_dir_.c_str());
   }
 
-  std::string read_file(const std::string& path)
+  std::string ReadFile(const std::string& path)
   {
     std::ifstream ifs(path);
     std::ostringstream oss;
@@ -86,7 +85,7 @@ TEST_F(RingMemorySinkTest, RingWrapsAround)
   for (uint64_t i = 0; i < 5; ++i)
   {
     auto msg = "msg" + std::to_string(i);
-    sink.Write(make_test_entry(br_logger::LogLevel::Info, msg.c_str(), i));
+    sink.Write(make_test_entry(br_logger::LogLevel::INFO, msg.c_str(), i));
   }
 
   EXPECT_EQ(sink.Size(), 3u);
@@ -103,7 +102,7 @@ TEST_F(RingMemorySinkTest, AtReturnsOldestToNewest)
   for (uint64_t i = 0; i < 3; ++i)
   {
     auto msg = "entry" + std::to_string(i);
-    sink.Write(make_test_entry(br_logger::LogLevel::Info, msg.c_str(), i));
+    sink.Write(make_test_entry(br_logger::LogLevel::INFO, msg.c_str(), i));
   }
 
   EXPECT_EQ(std::string(sink.At(0).msg, sink.At(0).msg_len), "entry0");
@@ -114,12 +113,12 @@ TEST_F(RingMemorySinkTest, AtReturnsOldestToNewest)
 TEST_F(RingMemorySinkTest, DumpToFileCreatesFormattedOutput)
 {
   br_logger::RingMemorySink sink(10);
-  sink.Write(make_test_entry(br_logger::LogLevel::Info, "hello dump"));
-  sink.Write(make_test_entry(br_logger::LogLevel::Warn, "warning dump"));
+  sink.Write(make_test_entry(br_logger::LogLevel::INFO, "hello dump"));
+  sink.Write(make_test_entry(br_logger::LogLevel::WARN, "warning dump"));
 
   EXPECT_TRUE(sink.DumpToFile(tmp_file_.c_str()));
 
-  std::string content = read_file(tmp_file_);
+  std::string content = ReadFile(tmp_file_);
   EXPECT_NE(content.find("hello dump"), std::string::npos);
   EXPECT_NE(content.find("warning dump"), std::string::npos);
 }
@@ -129,19 +128,19 @@ TEST_F(RingMemorySinkTest, DumpToFileEmptyRing)
   br_logger::RingMemorySink sink(10);
   EXPECT_TRUE(sink.DumpToFile(tmp_file_.c_str()));
 
-  std::string content = read_file(tmp_file_);
+  std::string content = ReadFile(tmp_file_);
   EXPECT_TRUE(content.empty());
 }
 
 TEST_F(RingMemorySinkTest, LevelFilteringWorks)
 {
   br_logger::RingMemorySink sink(10);
-  sink.SetLevel(br_logger::LogLevel::Warn);
+  sink.SetLevel(br_logger::LogLevel::WARN);
 
-  sink.Write(make_test_entry(br_logger::LogLevel::Info, "filtered"));
+  sink.Write(make_test_entry(br_logger::LogLevel::INFO, "filtered"));
   EXPECT_EQ(sink.Size(), 0u);
 
-  sink.Write(make_test_entry(br_logger::LogLevel::Warn, "allowed"));
+  sink.Write(make_test_entry(br_logger::LogLevel::WARN, "allowed"));
   EXPECT_EQ(sink.Size(), 1u);
   EXPECT_EQ(std::string(sink.At(0).msg, sink.At(0).msg_len), "allowed");
 }
@@ -150,11 +149,11 @@ TEST_F(RingMemorySinkTest, CapacityOneEdgeCase)
 {
   br_logger::RingMemorySink sink(1);
 
-  sink.Write(make_test_entry(br_logger::LogLevel::Info, "first"));
+  sink.Write(make_test_entry(br_logger::LogLevel::INFO, "first"));
   EXPECT_EQ(sink.Size(), 1u);
   EXPECT_EQ(std::string(sink.At(0).msg, sink.At(0).msg_len), "first");
 
-  sink.Write(make_test_entry(br_logger::LogLevel::Info, "second"));
+  sink.Write(make_test_entry(br_logger::LogLevel::INFO, "second"));
   EXPECT_EQ(sink.Size(), 1u);
   EXPECT_EQ(std::string(sink.At(0).msg, sink.At(0).msg_len), "second");
 }
@@ -166,7 +165,7 @@ TEST_F(RingMemorySinkTest, WriteExactlyCapacityNoWrap)
   for (uint64_t i = 0; i < 4; ++i)
   {
     auto msg = "item" + std::to_string(i);
-    sink.Write(make_test_entry(br_logger::LogLevel::Info, msg.c_str(), i));
+    sink.Write(make_test_entry(br_logger::LogLevel::INFO, msg.c_str(), i));
   }
 
   EXPECT_EQ(sink.Size(), 4u);
@@ -185,7 +184,7 @@ TEST_F(RingMemorySinkTest, FlushDoesNotCrash)
 TEST_F(RingMemorySinkTest, DefaultLevelIsTrace)
 {
   br_logger::RingMemorySink sink;
-  EXPECT_EQ(sink.Level(), br_logger::LogLevel::Trace);
+  EXPECT_EQ(sink.Level(), br_logger::LogLevel::TRACE);
 }
 
 TEST_F(RingMemorySinkTest, DefaultCapacityIs1024)
@@ -212,11 +211,11 @@ TEST_F(RingMemorySinkTest, DumpAfterWrapContainsOnlyNewest)
   for (uint64_t i = 0; i < 5; ++i)
   {
     auto msg = "line" + std::to_string(i);
-    sink.Write(make_test_entry(br_logger::LogLevel::Info, msg.c_str(), i));
+    sink.Write(make_test_entry(br_logger::LogLevel::INFO, msg.c_str(), i));
   }
 
   EXPECT_TRUE(sink.DumpToFile(tmp_file_.c_str()));
-  std::string content = read_file(tmp_file_);
+  std::string content = ReadFile(tmp_file_);
 
   EXPECT_EQ(content.find("line0"), std::string::npos);
   EXPECT_EQ(content.find("line1"), std::string::npos);

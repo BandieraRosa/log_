@@ -18,7 +18,7 @@ class ExampleNode : public rclcpp::Node
     config.file_path = "/tmp/robot_logs/";
     br_logger::ros2::init(shared_from_this(), config);
 
-    br_logger::Logger::Instance().SetLevel(br_logger::LogLevel::Trace);
+    br_logger::Logger::Instance().SetLevel(br_logger::LogLevel::TRACE);
 
     sub_ = create_subscription<std_msgs::msg::String>(
         "/chatter", 10, std::bind(&ExampleNode::OnChatter, this, std::placeholders::_1));
@@ -50,7 +50,7 @@ class ExampleNode : public rclcpp::Node
 
     static int count = 0;
     ++count;
-    LOG_EVERY_N(Info, 5, "heartbeat count: %d", count);
+    LOG_EVERY_N(INFO, 5, "heartbeat count: %d", count);
   }
 
   rclcpp::Subscription<std_msgs::msg::String>::SharedPtr sub_;

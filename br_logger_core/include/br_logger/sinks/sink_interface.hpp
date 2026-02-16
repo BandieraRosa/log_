@@ -35,7 +35,7 @@ class ILogSink
 
  protected:
   std::unique_ptr<IFormatter> formatter_;
-  LogLevel min_level_ = LogLevel::Trace;
+  LogLevel min_level_ = LogLevel::TRACE;
   char format_buf_[2048];
 
   // 通用格式化，返回格式化后的长度

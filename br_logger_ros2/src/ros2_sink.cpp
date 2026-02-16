@@ -28,17 +28,16 @@ int ROS2Sink::MapLevel(LogLevel level)
 {
   switch (level)
   {
-    case LogLevel::Trace:
+    case LogLevel::TRACE:
+    case LogLevel::DEBUG:
       return RCUTILS_LOG_SEVERITY_DEBUG;
-    case LogLevel::Debug:
-      return RCUTILS_LOG_SEVERITY_DEBUG;
-    case LogLevel::Info:
+    case LogLevel::INFO:
       return RCUTILS_LOG_SEVERITY_INFO;
-    case LogLevel::Warn:
+    case LogLevel::WARN:
       return RCUTILS_LOG_SEVERITY_WARN;
-    case LogLevel::Error:
+    case LogLevel::ERROR:
       return RCUTILS_LOG_SEVERITY_ERROR;
-    case LogLevel::Fatal:
+    case LogLevel::FATAL:
       return RCUTILS_LOG_SEVERITY_FATAL;
     default:
       return RCUTILS_LOG_SEVERITY_INFO;

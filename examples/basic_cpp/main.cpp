@@ -30,7 +30,7 @@ int main()
   auto cb_sink = std::make_unique<br_logger::CallbackSink>(
       [](const br_logger::LogEntry& entry)
       {
-        if (entry.level >= br_logger::LogLevel::Error)
+        if (entry.level >= br_logger::LogLevel::ERROR)
         {
           std::fprintf(stderr, "[ALERT] %s\n", entry.msg);
         }
@@ -39,7 +39,7 @@ int main()
 
   // --- Configuration ---
 
-  logger.SetLevel(br_logger::LogLevel::Trace);
+  logger.SetLevel(br_logger::LogLevel::TRACE);
   br_logger::LogContext::Instance().SetProcessName("basic_example");
   br_logger::LogContext::Instance().SetAppVersion("1.0.0");
   br_logger::LogContext::SetThreadName("main");
@@ -76,14 +76,14 @@ int main()
 
   for (int i = 0; i < 100; ++i)
   {
-    LOG_EVERY_N(Info, 25, "progress: iteration %d", i);
+    LOG_EVERY_N(INFO, 25, "progress: iteration %d", i);
   }
 
   // --- LOG_ONCE ---
 
   for (int i = 0; i < 10; ++i)
   {
-    LOG_ONCE(Warn, "this warning only appears once");
+    LOG_ONCE(WARN, "this warning only appears once");
   }
 
   // --- Multi-thread demo ---

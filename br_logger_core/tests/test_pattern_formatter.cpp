@@ -13,7 +13,7 @@ static br_logger::LogEntry make_test_entry()
   br_logger::LogEntry entry{};
   entry.wall_clock_ns = 1739692200123456000ULL;
   entry.timestamp_ns = 123456789ULL;
-  entry.level = br_logger::LogLevel::Info;
+  entry.level = br_logger::LogLevel::INFO;
   entry.file_path = "/src/main.cpp";
   entry.file_name = "main.cpp";
   entry.function_name = "process";
@@ -178,7 +178,7 @@ TEST(PatternFormatter, Microseconds)
 TEST(PatternFormatter, ColorInfo)
 {
   auto entry = make_test_entry();
-  entry.level = br_logger::LogLevel::Info;
+  entry.level = br_logger::LogLevel::INFO;
   auto out = format_with(entry, "%C%L%R", true);
   EXPECT_NE(out.find("\033[32m"), std::string::npos);
   EXPECT_NE(out.find("\033[0m"), std::string::npos);
@@ -187,7 +187,7 @@ TEST(PatternFormatter, ColorInfo)
 TEST(PatternFormatter, ColorWarn)
 {
   auto entry = make_test_entry();
-  entry.level = br_logger::LogLevel::Warn;
+  entry.level = br_logger::LogLevel::WARN;
   auto out = format_with(entry, "%C%L%R", true);
   EXPECT_NE(out.find("\033[33m"), std::string::npos);
 }
@@ -195,7 +195,7 @@ TEST(PatternFormatter, ColorWarn)
 TEST(PatternFormatter, ColorError)
 {
   auto entry = make_test_entry();
-  entry.level = br_logger::LogLevel::Error;
+  entry.level = br_logger::LogLevel::ERROR;
   auto out = format_with(entry, "%C%L%R", true);
   EXPECT_NE(out.find("\033[31m"), std::string::npos);
 }
@@ -203,7 +203,7 @@ TEST(PatternFormatter, ColorError)
 TEST(PatternFormatter, ColorFatal)
 {
   auto entry = make_test_entry();
-  entry.level = br_logger::LogLevel::Fatal;
+  entry.level = br_logger::LogLevel::FATAL;
   auto out = format_with(entry, "%C%L%R", true);
   EXPECT_NE(out.find("\033[1;31m"), std::string::npos);
 }
@@ -211,7 +211,7 @@ TEST(PatternFormatter, ColorFatal)
 TEST(PatternFormatter, ColorDisabled)
 {
   auto entry = make_test_entry();
-  entry.level = br_logger::LogLevel::Info;
+  entry.level = br_logger::LogLevel::INFO;
   auto out = format_with(entry, "%C%L%R", false);
   EXPECT_EQ(out.find("\033["), std::string::npos);
 }

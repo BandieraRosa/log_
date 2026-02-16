@@ -18,7 +18,7 @@
 #include "../include/br_logger/sinks/rotating_file_sink.hpp"
 
 static br_logger::LogEntry make_entry(
-    br_logger::LogLevel level = br_logger::LogLevel::Info,
+    br_logger::LogLevel level = br_logger::LogLevel::INFO,
     const char* msg = "test message")
 {
   br_logger::LogEntry entry{};
@@ -47,7 +47,10 @@ class MockFileFmt : public br_logger::IFormatter
   size_t Format(const br_logger::LogEntry& entry, char* buf, size_t buf_size) override
   {
     size_t len = entry.msg_len;
-    if (len >= buf_size) len = buf_size - 1;
+    if (len >= buf_size)
+    {
+      len = buf_size - 1;
+    }
     std::memcpy(buf, entry.msg, len);
     buf[len] = '\0';
     return len;
@@ -69,44 +72,56 @@ class RotatingFileSinkTest : public ::testing::Test
     base_path_ = tmp_dir_ + "/app.log";
   }
 
-  void TearDown() override { remove_dir_recursive(tmp_dir_); }
+  void TearDown() override { RemoveDirRecursive(tmp_dir_); }
 
-  static std::string read_file(const std::string& path)
+  static std::string ReadFile(const std::string& path)
   {
     std::ifstream ifs(path);
-    if (!ifs) return "";
+    if (!ifs)
+    {
+      return "";
+    }
     std::ostringstream ss;
     ss << ifs.rdbuf();
     return ss.str();
   }
 
-  static bool file_exists(const std::string& path)
+  static bool FileExists(const std::string& path)
   {
     struct stat st{};
     return ::stat(path.c_str(), &st) == 0;
   }
 
-  static size_t file_size(const std::string& path)
+  static size_t FileSize(const std::string& path)
   {
     struct stat st{};
-    if (::stat(path.c_str(), &st) != 0) return 0;
+    if (::stat(path.c_str(), &st) != 0)
+    {
+      return 0;
+    }
     return static_cast<size_t>(st.st_size);
   }
 
-  static void remove_dir_recursive(const std::string& path)
+  static void RemoveDirRecursive(const std::string& path)
   {
     DIR* d = ::opendir(path.c_str());
-    if (!d) return;
-    struct dirent* ent;
+    if (!d)
+    {
+      return;
+    }
+    struct dirent* ent = nullptr;
     while ((ent = ::readdir(d)) != nullptr)
     {
       std::string name = ent->d_name;
-      if (name == "." || name == "..") continue;
+      if (name == "." || name == "..")
+      {
+        continue;
+      }
       std::string full = path + "/" + name;
       struct stat st{};
       if (::stat(full.c_str(), &st) == 0 && S_ISDIR(st.st_mode))
       {
-        remove_dir_recursive(full);
+        RemoveDirRecursive(full);
       }
       else
       {
@@ -121,7 +136,7 @@ class RotatingFileSinkTest : public ::testing::Test
 TEST_F(RotatingFileSinkTest, FileCreatedOnConstruction)
 {
   br_logger::RotatingFileSink sink(base_path_, 1024, 3);
-  EXPECT_TRUE(file_exists(base_path_));
+  EXPECT_TRUE(FileExists(base_path_));
 }
 
 TEST_F(RotatingFileSinkTest, WriteCreatesContent)
@@ -133,7 +148,7 @@ TEST_F(RotatingFileSinkTest, WriteCreatesContent)
   sink.Write(make_entry());
   sink.Flush();
 
-  std::string content = read_file(base_path_);
+  std::string content = ReadFile(base_path_);
   EXPECT_NE(content.find("test message"), std::string::npos);
 }
 
@@ -143,12 +158,12 @@ TEST_F(RotatingFileSinkTest, MultipleWritesAccumulate)
   auto fmt = std::make_unique<MockFileFmt>();
   sink.SetFormatter(std::move(fmt));
 
-  sink.Write(make_entry(br_logger::LogLevel::Info, "line1"));
-  sink.Write(make_entry(br_logger::LogLevel::Info, "line2"));
-  sink.Write(make_entry(br_logger::LogLevel::Info, "line3"));
+  sink.Write(make_entry(br_logger::LogLevel::INFO, "line1"));
+  sink.Write(make_entry(br_logger::LogLevel::INFO, "line2"));
+  sink.Write(make_entry(br_logger::LogLevel::INFO, "line3"));
   sink.Flush();
 
-  std::string content = read_file(base_path_);
+  std::string content = ReadFile(base_path_);
   EXPECT_NE(content.find("line1"), std::string::npos);
   EXPECT_NE(content.find("line2"), std::string::npos);
   EXPECT_NE(content.find("line3"), std::string::npos);
@@ -163,12 +178,12 @@ TEST_F(RotatingFileSinkTest, RotationTriggersOnSizeExceeded)
   for (int i = 0; i < 10; ++i)
   {
     std::string msg = "msg_" + std::to_string(i) + "_padding_data";
-    sink.Write(make_entry(br_logger::LogLevel::Info, msg.c_str()));
+    sink.Write(make_entry(br_logger::LogLevel::INFO, msg.c_str()));
   }
   sink.Flush();
 
-  EXPECT_TRUE(file_exists(base_path_));
-  EXPECT_TRUE(file_exists(base_path_ + ".1.log"));
+  EXPECT_TRUE(FileExists(base_path_));
+  EXPECT_TRUE(FileExists(base_path_ + ".1.log"));
 }
 
 TEST_F(RotatingFileSinkTest, RotatedFilesHaveCorrectNames)
@@ -180,18 +195,18 @@ TEST_F(RotatingFileSinkTest, RotatedFilesHaveCorrectNames)
   for (int i = 0; i < 20; ++i)
   {
     std::string msg = "message_number_" + std::to_string(i);
-    sink.Write(make_entry(br_logger::LogLevel::Info, msg.c_str()));
+    sink.Write(make_entry(br_logger::LogLevel::INFO, msg.c_str()));
   }
   sink.Flush();
 
-  EXPECT_TRUE(file_exists(base_path_));
-  EXPECT_TRUE(file_exists(base_path_ + ".1.log"));
-  EXPECT_TRUE(file_exists(base_path_ + ".2.log"));
+  EXPECT_TRUE(FileExists(base_path_));
+  EXPECT_TRUE(FileExists(base_path_ + ".1.log"));
+  EXPECT_TRUE(FileExists(base_path_ + ".2.log"));
 }
 
 TEST_F(RotatingFileSinkTest, OldFilesBeyondMaxFilesDeleted)
 {
-  const size_t max_files = 2;
+  size_t max_files = 2;
   br_logger::RotatingFileSink sink(base_path_, 30, max_files);
   auto fmt = std::make_unique<MockFileFmt>();
   sink.SetFormatter(std::move(fmt));
@@ -199,14 +214,14 @@ TEST_F(RotatingFileSinkTest, OldFilesBeyondMaxFilesDeleted)
   for (int i = 0; i < 50; ++i)
   {
     std::string msg = "padding_msg_" + std::to_string(i);
-    sink.Write(make_entry(br_logger::LogLevel::Info, msg.c_str()));
+    sink.Write(make_entry(br_logger::LogLevel::INFO, msg.c_str()));
   }
   sink.Flush();
 
-  EXPECT_TRUE(file_exists(base_path_));
-  EXPECT_TRUE(file_exists(base_path_ + ".1.log"));
-  EXPECT_TRUE(file_exists(base_path_ + ".2.log"));
-  EXPECT_FALSE(file_exists(base_path_ + ".3.log"));
+  EXPECT_TRUE(FileExists(base_path_));
+  EXPECT_TRUE(FileExists(base_path_ + ".1.log"));
+  EXPECT_TRUE(FileExists(base_path_ + ".2.log"));
+  EXPECT_FALSE(FileExists(base_path_ + ".3.log"));
 }
 
 TEST_F(RotatingFileSinkTest, FlushMakesContentPersistent)
@@ -215,11 +230,11 @@ TEST_F(RotatingFileSinkTest, FlushMakesContentPersistent)
   auto fmt = std::make_unique<MockFileFmt>();
   sink.SetFormatter(std::move(fmt));
 
-  sink.Write(make_entry(br_logger::LogLevel::Info, "persistent data"));
+  sink.Write(make_entry(br_logger::LogLevel::INFO, "persistent data"));
   sink.Flush();
 
-  EXPECT_GT(file_size(base_path_), 0u);
-  std::string content = read_file(base_path_);
+  EXPECT_GT(FileSize(base_path_), 0u);
+  std::string content = ReadFile(base_path_);
   EXPECT_NE(content.find("persistent data"), std::string::npos);
 }
 
@@ -228,15 +243,15 @@ TEST_F(RotatingFileSinkTest, SetLevelFiltering)
   br_logger::RotatingFileSink sink(base_path_, 4096, 3);
   auto fmt = std::make_unique<MockFileFmt>();
   sink.SetFormatter(std::move(fmt));
-  sink.SetLevel(br_logger::LogLevel::Warn);
+  sink.SetLevel(br_logger::LogLevel::WARN);
 
-  sink.Write(make_entry(br_logger::LogLevel::Info, "should_not_appear"));
-  sink.Write(make_entry(br_logger::LogLevel::Debug, "also_not"));
-  sink.Write(make_entry(br_logger::LogLevel::Warn, "warning_msg"));
-  sink.Write(make_entry(br_logger::LogLevel::Error, "error_msg"));
+  sink.Write(make_entry(br_logger::LogLevel::INFO, "should_not_appear"));
+  sink.Write(make_entry(br_logger::LogLevel::DEBUG, "also_not"));
+  sink.Write(make_entry(br_logger::LogLevel::WARN, "warning_msg"));
+  sink.Write(make_entry(br_logger::LogLevel::ERROR, "error_msg"));
   sink.Flush();
 
-  std::string content = read_file(base_path_);
+  std::string content = ReadFile(base_path_);
   EXPECT_EQ(content.find("should_not_appear"), std::string::npos);
   EXPECT_EQ(content.find("also_not"), std::string::npos);
   EXPECT_NE(content.find("warning_msg"), std::string::npos);
@@ -246,7 +261,7 @@ TEST_F(RotatingFileSinkTest, SetLevelFiltering)
 TEST_F(RotatingFileSinkTest, DefaultLevelIsTrace)
 {
   br_logger::RotatingFileSink sink(base_path_, 4096, 3);
-  EXPECT_EQ(sink.Level(), br_logger::LogLevel::Trace);
+  EXPECT_EQ(sink.Level(), br_logger::LogLevel::TRACE);
 }
 
 TEST_F(RotatingFileSinkTest, DefaultFormatterCreatedOnWrite)
@@ -255,7 +270,7 @@ TEST_F(RotatingFileSinkTest, DefaultFormatterCreatedOnWrite)
   sink.Write(make_entry());
   sink.Flush();
 
-  std::string content = read_file(base_path_);
+  std::string content = ReadFile(base_path_);
   EXPECT_FALSE(content.empty());
   EXPECT_NE(content.find("test message"), std::string::npos);
 }
@@ -269,12 +284,12 @@ TEST_F(RotatingFileSinkTest, FileReopenedAfterRotation)
   for (int i = 0; i < 5; ++i)
   {
     std::string msg = "after_rotate_" + std::to_string(i);
-    sink.Write(make_entry(br_logger::LogLevel::Info, msg.c_str()));
+    sink.Write(make_entry(br_logger::LogLevel::INFO, msg.c_str()));
   }
   sink.Flush();
 
-  EXPECT_TRUE(file_exists(base_path_));
-  std::string content = read_file(base_path_);
+  EXPECT_TRUE(FileExists(base_path_));
+  std::string content = ReadFile(base_path_);
   EXPECT_FALSE(content.empty());
 }
 
@@ -284,20 +299,20 @@ TEST_F(RotatingFileSinkTest, RotatedFileContainsPreviousContent)
   auto fmt = std::make_unique<MockFileFmt>();
   sink.SetFormatter(std::move(fmt));
 
-  sink.Write(make_entry(br_logger::LogLevel::Info, "first_batch_data_xyz"));
+  sink.Write(make_entry(br_logger::LogLevel::INFO, "first_batch_data_xyz"));
   sink.Flush();
 
   for (int i = 0; i < 10; ++i)
   {
     std::string msg = "second_batch_" + std::to_string(i) + "_pad";
-    sink.Write(make_entry(br_logger::LogLevel::Info, msg.c_str()));
+    sink.Write(make_entry(br_logger::LogLevel::INFO, msg.c_str()));
   }
   sink.Flush();
 
   std::string rotated = base_path_ + ".1.log";
-  if (file_exists(rotated))
+  if (FileExists(rotated))
   {
-    std::string content = read_file(rotated);
+    std::string content = ReadFile(rotated);
     EXPECT_FALSE(content.empty());
   }
 }
@@ -308,10 +323,10 @@ TEST_F(RotatingFileSinkTest, DestructorClosesCleanly)
     br_logger::RotatingFileSink sink(base_path_, 4096, 3);
     auto fmt = std::make_unique<MockFileFmt>();
     sink.SetFormatter(std::move(fmt));
-    sink.Write(make_entry(br_logger::LogLevel::Info, "before_destruct"));
+    sink.Write(make_entry(br_logger::LogLevel::INFO, "before_destruct"));
   }
 
-  std::string content = read_file(base_path_);
+  std::string content = ReadFile(base_path_);
   EXPECT_NE(content.find("before_destruct"), std::string::npos);
 }
 
@@ -324,13 +339,13 @@ TEST_F(RotatingFileSinkTest, MaxFilesOne)
   for (int i = 0; i < 20; ++i)
   {
     std::string msg = "maxone_msg_" + std::to_string(i);
-    sink.Write(make_entry(br_logger::LogLevel::Info, msg.c_str()));
+    sink.Write(make_entry(br_logger::LogLevel::INFO, msg.c_str()));
   }
   sink.Flush();
 
-  EXPECT_TRUE(file_exists(base_path_));
-  EXPECT_TRUE(file_exists(base_path_ + ".1.log"));
-  EXPECT_FALSE(file_exists(base_path_ + ".2.log"));
+  EXPECT_TRUE(FileExists(base_path_));
+  EXPECT_TRUE(FileExists(base_path_ + ".1.log"));
+  EXPECT_FALSE(FileExists(base_path_ + ".2.log"));
 }
 
 TEST_F(RotatingFileSinkTest, FlushDoesNotCrashOnEmptyFile)
@@ -342,14 +357,14 @@ TEST_F(RotatingFileSinkTest, FlushDoesNotCrashOnEmptyFile)
 TEST_F(RotatingFileSinkTest, ShouldLogFiltering)
 {
   br_logger::RotatingFileSink sink(base_path_, 4096, 3);
-  sink.SetLevel(br_logger::LogLevel::Error);
+  sink.SetLevel(br_logger::LogLevel::ERROR);
 
-  EXPECT_FALSE(sink.ShouldLog(br_logger::LogLevel::Trace));
-  EXPECT_FALSE(sink.ShouldLog(br_logger::LogLevel::Debug));
-  EXPECT_FALSE(sink.ShouldLog(br_logger::LogLevel::Info));
-  EXPECT_FALSE(sink.ShouldLog(br_logger::LogLevel::Warn));
-  EXPECT_TRUE(sink.ShouldLog(br_logger::LogLevel::Error));
-  EXPECT_TRUE(sink.ShouldLog(br_logger::LogLevel::Fatal));
+  EXPECT_FALSE(sink.ShouldLog(br_logger::LogLevel::TRACE));
+  EXPECT_FALSE(sink.ShouldLog(br_logger::LogLevel::DEBUG));
+  EXPECT_FALSE(sink.ShouldLog(br_logger::LogLevel::INFO));
+  EXPECT_FALSE(sink.ShouldLog(br_logger::LogLevel::WARN));
+  EXPECT_TRUE(sink.ShouldLog(br_logger::LogLevel::ERROR));
+  EXPECT_TRUE(sink.ShouldLog(br_logger::LogLevel::FATAL));
 }
 
 TEST_F(RotatingFileSinkTest, ExistingFileAppendsOnReopen)
@@ -358,7 +373,7 @@ TEST_F(RotatingFileSinkTest, ExistingFileAppendsOnReopen)
     br_logger::RotatingFileSink sink(base_path_, 4096, 3);
     auto fmt = std::make_unique<MockFileFmt>();
     sink.SetFormatter(std::move(fmt));
-    sink.Write(make_entry(br_logger::LogLevel::Info, "session_one"));
+    sink.Write(make_entry(br_logger::LogLevel::INFO, "session_one"));
     sink.Flush();
   }
 
@@ -366,11 +381,11 @@ TEST_F(RotatingFileSinkTest, ExistingFileAppendsOnReopen)
     br_logger::RotatingFileSink sink(base_path_, 4096, 3);
     auto fmt = std::make_unique<MockFileFmt>();
     sink.SetFormatter(std::move(fmt));
-    sink.Write(make_entry(br_logger::LogLevel::Info, "session_two"));
+    sink.Write(make_entry(br_logger::LogLevel::INFO, "session_two"));
     sink.Flush();
   }
 
-  std::string content = read_file(base_path_);
+  std::string content = ReadFile(base_path_);
   EXPECT_NE(content.find("session_one"), std::string::npos);
   EXPECT_NE(content.find("session_two"), std::string::npos);
 }

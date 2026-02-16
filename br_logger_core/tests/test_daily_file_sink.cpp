@@ -7,17 +7,15 @@
 #include <cstdio>
 #include <cstring>
 #include <ctime>
-#include <fstream>
 #include <memory>
 #include <string>
 
-#include "../include/br_logger/formatters/pattern_formatter.hpp"
 #include "../include/br_logger/log_entry.hpp"
 #include "../include/br_logger/log_level.hpp"
 #include "../include/br_logger/sinks/daily_file_sink.hpp"
 
 static br_logger::LogEntry make_test_entry(
-    br_logger::LogLevel level = br_logger::LogLevel::Info)
+    br_logger::LogLevel level = br_logger::LogLevel::INFO)
 {
   br_logger::LogEntry entry{};
   entry.wall_clock_ns = 1739692200123456000ULL;
@@ -49,7 +47,10 @@ class MockFormatter : public br_logger::IFormatter
   {
     last_formatted = std::string(entry.msg, entry.msg_len);
     size_t len = last_formatted.size();
-    if (len >= buf_size) len = buf_size - 1;
+    if (len >= buf_size)
+    {
+      len = buf_size - 1;
+    }
     std::memcpy(buf, last_formatted.c_str(), len);
     buf[len] = '\0';
     return len;
@@ -59,7 +60,10 @@ class MockFormatter : public br_logger::IFormatter
 static std::string read_file_contents(const std::string& path)
 {
   int fd = ::open(path.c_str(), O_RDONLY);
-  if (fd < 0) return "";
+  if (fd < 0)
+  {
+    return "";
+  }
   char buf[8192] = {};
   ssize_t n = ::read(fd, buf, sizeof(buf) - 1);
   ::close(fd);
@@ -74,13 +78,21 @@ static std::string read_file_contents(const std::string& path)
 static void remove_directory_recursive(const std::string& path)
 {
   DIR* dir = ::opendir(path.c_str());
-  if (!dir) return;
-  struct dirent* ent;
+  if (!dir)
+  {
+    return;
+  }
+  struct dirent* ent = nullptr;
   while ((ent = ::readdir(dir)) != nullptr)
   {
     std::string name(ent->d_name);
-    if (name == "." || name == "..") continue;
-    std::string full = path + "/" + name;
+    if (name == "." || name == "..")
+    {
+      continue;
+    }
+    std::string full = path;
+    full.append("/");
+    full += name;
     struct stat st{};
     if (::stat(full.c_str(), &st) == 0)
     {
@@ -113,7 +125,7 @@ class DailyFileSinkTest : public ::testing::Test
 
   void TearDown() override { remove_directory_recursive(test_dir_); }
 
-  std::string expected_filename_for_today(const std::string& base_name)
+  std::string ExpectedFilenameForToday(const std::string& base_name)
   {
     std::time_t now = std::time(nullptr);
     std::tm tm_buf{};
@@ -128,7 +140,7 @@ class DailyFileSinkTest : public ::testing::Test
 TEST_F(DailyFileSinkTest, FileCreatedWithCorrectName)
 {
   br_logger::DailyFileSink sink(test_dir_, "app");
-  std::string expected = expected_filename_for_today("app");
+  std::string expected = ExpectedFilenameForToday("app");
   struct stat st{};
   EXPECT_EQ(::stat(expected.c_str(), &st), 0);
 }
@@ -142,7 +154,7 @@ TEST_F(DailyFileSinkTest, WriteCreatesContent)
     sink.Flush();
   }
 
-  std::string expected = expected_filename_for_today("app");
+  std::string expected = ExpectedFilenameForToday("app");
   std::string content = read_file_contents(expected);
   EXPECT_FALSE(content.empty());
   EXPECT_NE(content.find("daily test message"), std::string::npos);
@@ -198,7 +210,7 @@ TEST_F(DailyFileSinkTest, FlushWorks)
   sink.Write(entry);
   EXPECT_NO_THROW(sink.Flush());
 
-  std::string expected = expected_filename_for_today("app");
+  std::string expected = ExpectedFilenameForToday("app");
   std::string content = read_file_contents(expected);
   EXPECT_NE(content.find("daily test message"), std::string::npos);
 }
@@ -206,13 +218,13 @@ TEST_F(DailyFileSinkTest, FlushWorks)
 TEST_F(DailyFileSinkTest, SetLevelFiltering)
 {
   br_logger::DailyFileSink sink(test_dir_, "app");
-  sink.SetLevel(br_logger::LogLevel::Warn);
+  sink.SetLevel(br_logger::LogLevel::WARN);
 
-  auto info_entry = make_test_entry(br_logger::LogLevel::Info);
+  auto info_entry = make_test_entry(br_logger::LogLevel::INFO);
   sink.Write(info_entry);
   sink.Flush();
 
-  std::string expected = expected_filename_for_today("app");
+  std::string expected = ExpectedFilenameForToday("app");
   std::string content = read_file_contents(expected);
   EXPECT_TRUE(content.empty());
 }
@@ -220,13 +232,13 @@ TEST_F(DailyFileSinkTest, SetLevelFiltering)
 TEST_F(DailyFileSinkTest, SetLevelAllowsHigherLevel)
 {
   br_logger::DailyFileSink sink(test_dir_, "app");
-  sink.SetLevel(br_logger::LogLevel::Warn);
+  sink.SetLevel(br_logger::LogLevel::WARN);
 
-  auto warn_entry = make_test_entry(br_logger::LogLevel::Warn);
+  auto warn_entry = make_test_entry(br_logger::LogLevel::WARN);
   sink.Write(warn_entry);
   sink.Flush();
 
-  std::string expected = expected_filename_for_today("app");
+  std::string expected = ExpectedFilenameForToday("app");
   std::string content = read_file_contents(expected);
   EXPECT_FALSE(content.empty());
 }
@@ -243,7 +255,7 @@ TEST_F(DailyFileSinkTest, MultipleWritesToSameFile)
     sink.Flush();
   }
 
-  std::string expected = expected_filename_for_today("app");
+  std::string expected = ExpectedFilenameForToday("app");
   std::string content = read_file_contents(expected);
 
   size_t count = 0;
@@ -269,7 +281,7 @@ TEST_F(DailyFileSinkTest, ConstructorCreatesDirectoryIfNotExist)
 TEST_F(DailyFileSinkTest, DefaultLevelIsTrace)
 {
   br_logger::DailyFileSink sink(test_dir_, "app");
-  EXPECT_EQ(sink.Level(), br_logger::LogLevel::Trace);
+  EXPECT_EQ(sink.Level(), br_logger::LogLevel::TRACE);
 }
 
 TEST_F(DailyFileSinkTest, CustomFormatterIsUsed)
@@ -319,7 +331,7 @@ TEST_F(DailyFileSinkTest, MakeFilenameDifferentDays)
 
 TEST_F(DailyFileSinkTest, AppendToExistingFile)
 {
-  std::string expected = expected_filename_for_today("app");
+  std::string expected = ExpectedFilenameForToday("app");
 
   {
     br_logger::DailyFileSink sink(test_dir_, "app");

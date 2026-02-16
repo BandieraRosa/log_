@@ -7,32 +7,32 @@ namespace br_logger
 
 enum class LogLevel : uint8_t
 {
-  Trace = 0,
-  Debug = 1,
-  Info = 2,
-  Warn = 3,
-  Error = 4,
-  Fatal = 5,
-  Off = 6
+  TRACE = 0,
+  DEBUG = 1,
+  INFO = 2,
+  WARN = 3,
+  ERROR = 4,
+  FATAL = 5,
+  OFF = 6
 };
 
 constexpr std::string_view to_string(LogLevel level)
 {
   switch (level)
   {
-    case LogLevel::Trace:
+    case LogLevel::TRACE:
       return "TRACE";
-    case LogLevel::Debug:
+    case LogLevel::DEBUG:
       return "DEBUG";
-    case LogLevel::Info:
+    case LogLevel::INFO:
       return "INFO";
-    case LogLevel::Warn:
+    case LogLevel::WARN:
       return "WARN";
-    case LogLevel::Error:
+    case LogLevel::ERROR:
       return "ERROR";
-    case LogLevel::Fatal:
+    case LogLevel::FATAL:
       return "FATAL";
-    case LogLevel::Off:
+    case LogLevel::OFF:
       return "OFF";
   }
   return "UNKNOWN";
@@ -42,19 +42,19 @@ constexpr char to_short_char(LogLevel level)
 {
   switch (level)
   {
-    case LogLevel::Trace:
+    case LogLevel::TRACE:
       return 'T';
-    case LogLevel::Debug:
+    case LogLevel::DEBUG:
       return 'D';
-    case LogLevel::Info:
+    case LogLevel::INFO:
       return 'I';
-    case LogLevel::Warn:
+    case LogLevel::WARN:
       return 'W';
-    case LogLevel::Error:
+    case LogLevel::ERROR:
       return 'E';
-    case LogLevel::Fatal:
+    case LogLevel::FATAL:
       return 'F';
-    case LogLevel::Off:
+    case LogLevel::OFF:
       return 'O';
   }
   return '?';

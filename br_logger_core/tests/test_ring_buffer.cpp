@@ -2,6 +2,7 @@
 
 #include <array>
 #include <atomic>
+#include <cstddef>
 #include <thread>
 #include <unordered_set>
 #include <vector>
@@ -19,10 +20,10 @@ struct TestItem
 namespace
 {
 
-constexpr uint32_t kProducerCount = 4;
-constexpr uint32_t kItemsPerProducer = 1000;
-constexpr uint32_t kStressProducers = 8;
-constexpr uint32_t kStressItems = 5000;
+constexpr uint32_t K_PRODUCER_COUNT = 4;
+constexpr uint32_t K_ITEMS_PER_PRODUCER = 1000;
+constexpr uint32_t K_STRESS_PRODUCERS = 8;
+constexpr uint32_t K_STRESS_ITEMS = 5000;
 
 uint64_t make_key(const TestItem& item)
 {
@@ -123,16 +124,16 @@ TEST(MPSCRingBuffer, WrapAround)
 TEST(MPSCRingBuffer, MultiProducerSingleConsumer)
 {
   MPSCRingBuffer<TestItem, 1024> buffer;
-  std::atomic<uint32_t> remaining{kProducerCount * kItemsPerProducer};
+  std::atomic<uint32_t> remaining{K_PRODUCER_COUNT * K_ITEMS_PER_PRODUCER};
   std::vector<std::thread> producers;
-  producers.reserve(kProducerCount);
+  producers.reserve(K_PRODUCER_COUNT);
 
-  for (uint32_t producer = 0; producer < kProducerCount; ++producer)
+  for (uint32_t producer = 0; producer < K_PRODUCER_COUNT; ++producer)
   {
     producers.emplace_back(
         [producer, &buffer]()
         {
-          for (uint32_t i = 0; i < kItemsPerProducer; ++i)
+          for (uint32_t i = 0; i < K_ITEMS_PER_PRODUCER; ++i)
           {
             TestItem item{producer, i};
             while (!buffer.TryPush(item))
@@ -143,12 +144,12 @@ TEST(MPSCRingBuffer, MultiProducerSingleConsumer)
         });
   }
 
-  std::array<uint32_t, kProducerCount> last_sequence;
+  std::array<uint32_t, K_PRODUCER_COUNT> last_sequence;
   last_sequence.fill(0);
-  std::array<bool, kProducerCount> seen_any;
+  std::array<bool, K_PRODUCER_COUNT> seen_any;
   seen_any.fill(false);
   std::unordered_set<uint64_t> seen;
-  seen.reserve(kProducerCount * kItemsPerProducer);
+  seen.reserve(static_cast<size_t>(K_PRODUCER_COUNT) * K_ITEMS_PER_PRODUCER);
 
   while (remaining.load(std::memory_order_relaxed) > 0)
   {
@@ -176,27 +177,27 @@ TEST(MPSCRingBuffer, MultiProducerSingleConsumer)
     thread.join();
   }
 
-  EXPECT_EQ(seen.size(), kProducerCount * kItemsPerProducer);
-  for (uint32_t producer = 0; producer < kProducerCount; ++producer)
+  EXPECT_EQ(seen.size(), K_PRODUCER_COUNT * K_ITEMS_PER_PRODUCER);
+  for (uint32_t producer = 0; producer < K_PRODUCER_COUNT; ++producer)
   {
     EXPECT_TRUE(seen_any[producer]);
-    EXPECT_EQ(last_sequence[producer], kItemsPerProducer - 1);
+    EXPECT_EQ(last_sequence[producer], K_ITEMS_PER_PRODUCER - 1);
   }
 }
 
 TEST(MPSCRingBuffer, StressTest)
 {
   MPSCRingBuffer<TestItem, 2048> buffer;
-  std::atomic<uint32_t> remaining{kStressProducers * kStressItems};
+  std::atomic<uint32_t> remaining{K_STRESS_PRODUCERS * K_STRESS_ITEMS};
   std::vector<std::thread> producers;
-  producers.reserve(kStressProducers);
+  producers.reserve(K_STRESS_PRODUCERS);
 
-  for (uint32_t producer = 0; producer < kStressProducers; ++producer)
+  for (uint32_t producer = 0; producer < K_STRESS_PRODUCERS; ++producer)
   {
     producers.emplace_back(
         [producer, &buffer]()
         {
-          for (uint32_t i = 0; i < kStressItems; ++i)
+          for (uint32_t i = 0; i < K_STRESS_ITEMS; ++i)
           {
             TestItem item{producer, i};
             while (!buffer.TryPush(item))
@@ -207,10 +208,10 @@ TEST(MPSCRingBuffer, StressTest)
         });
   }
 
-  std::vector<uint32_t> last_sequence(kStressProducers, 0);
-  std::vector<bool> seen_any(kStressProducers, false);
+  std::vector<uint32_t> last_sequence(K_STRESS_PRODUCERS, 0);
+  std::vector<bool> seen_any(K_STRESS_PRODUCERS, false);
   std::unordered_set<uint64_t> seen;
-  seen.reserve(kStressProducers * kStressItems);
+  seen.reserve(static_cast<size_t>(K_STRESS_PRODUCERS) * K_STRESS_ITEMS);
 
   while (remaining.load(std::memory_order_relaxed) > 0)
   {
@@ -238,10 +239,10 @@ TEST(MPSCRingBuffer, StressTest)
     thread.join();
   }
 
-  EXPECT_EQ(seen.size(), kStressProducers * kStressItems);
-  for (uint32_t producer = 0; producer < kStressProducers; ++producer)
+  EXPECT_EQ(seen.size(), K_STRESS_PRODUCERS * K_STRESS_ITEMS);
+  for (uint32_t producer = 0; producer < K_STRESS_PRODUCERS; ++producer)
   {
     EXPECT_TRUE(seen_any[producer]);
-    EXPECT_EQ(last_sequence[producer], kStressItems - 1);
+    EXPECT_EQ(last_sequence[producer], K_STRESS_ITEMS - 1);
   }
 }

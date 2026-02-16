@@ -299,25 +299,25 @@ size_t br_logger::PatternFormatter::Format(const LogEntry& entry, char* buf,
         const char* color = "";
         switch (entry.level)
         {
-          case br_logger::LogLevel::Trace:
+          case br_logger::LogLevel::TRACE:
             color = "\033[37m";
             break;
-          case br_logger::LogLevel::Debug:
+          case br_logger::LogLevel::DEBUG:
             color = "\033[36m";
             break;
-          case br_logger::LogLevel::Info:
+          case br_logger::LogLevel::INFO:
             color = "\033[32m";
             break;
-          case br_logger::LogLevel::Warn:
+          case br_logger::LogLevel::WARN:
             color = "\033[33m";
             break;
-          case br_logger::LogLevel::Error:
+          case br_logger::LogLevel::ERROR:
             color = "\033[31m";
             break;
-          case br_logger::LogLevel::Fatal:
+          case br_logger::LogLevel::FATAL:
             color = "\033[1;31m";
             break;
-          case br_logger::LogLevel::Off:
+          case br_logger::LogLevel::OFF:
             color = "";
             break;
         }

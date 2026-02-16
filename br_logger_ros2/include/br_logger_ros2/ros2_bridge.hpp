@@ -15,7 +15,7 @@ struct BridgeConfig
   bool enable_console = true;
   bool enable_file = false;
   std::string file_path = "/tmp/robot_logs/";
-  size_t max_file_size = 50 * 1024 * 1024;
+  size_t max_file_size = static_cast<size_t>(50 * 1024 * 1024);
   uint32_t max_files = 5;
   std::string console_pattern = "[%D %T%e] [%C%L%R] [%g] [%f:%#::%n] %m";
 };

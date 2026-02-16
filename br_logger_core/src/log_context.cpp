@@ -3,7 +3,6 @@
 #include <cstring>
 #include <mutex>
 #include <shared_mutex>
-#include <thread>
 
 #include "br_logger/platform.hpp"
 
@@ -36,7 +35,10 @@ LogContext& LogContext::Instance()
 
 void LogContext::SetGlobalTag(const char* key, const char* value)
 {
-  if (!key || !value) return;
+  if (!key || !value)
+  {
+    return;
+  }
   std::unique_lock<std::shared_mutex> lock(global_mutex_);
   for (size_t i = 0; i < global_tags_.Size(); ++i)
   {
@@ -58,7 +60,10 @@ void LogContext::SetGlobalTag(const char* key, const char* value)
 
 void LogContext::RemoveGlobalTag(const char* key)
 {
-  if (!key) return;
+  if (!key)
+  {
+    return;
+  }
   std::unique_lock<std::shared_mutex> lock(global_mutex_);
   for (size_t i = 0; i < global_tags_.Size(); ++i)
   {
@@ -77,14 +82,20 @@ void LogContext::RemoveGlobalTag(const char* key)
 
 void LogContext::SetProcessName(const char* name)
 {
-  if (!name) return;
+  if (!name)
+  {
+    return;
+  }
   std::strncpy(process_name_, name, sizeof(process_name_) - 1);
   process_name_[sizeof(process_name_) - 1] = '\0';
 }
 
 void LogContext::SetAppVersion(const char* version)
 {
-  if (!version) return;
+  if (!version)
+  {
+    return;
+  }
   std::strncpy(app_version_, version, sizeof(app_version_) - 1);
   app_version_[sizeof(app_version_) - 1] = '\0';
 }
@@ -95,7 +106,10 @@ const char* LogContext::BuildType() const { return BR_LOG_BUILD_TYPE; }
 
 void LogContext::SetThreadName(const char* name)
 {
-  if (!name) return;
+  if (!name)
+  {
+    return;
+  }
   std::strncpy(tls_thread_name_, name, sizeof(tls_thread_name_) - 1);
   tls_thread_name_[sizeof(tls_thread_name_) - 1] = '\0';
 }
@@ -125,7 +139,10 @@ uint32_t LogContext::GetThreadId()
 
 void LogContext::PushScopedTag(const char* key, const char* value)
 {
-  if (!key || !value) return;
+  if (!key || !value)
+  {
+    return;
+  }
   LogTag tag{};
   std::strncpy(tag.key, key, BR_LOG_MAX_TAG_KEY_LEN - 1);
   tag.key[BR_LOG_MAX_TAG_KEY_LEN - 1] = '\0';
@@ -136,7 +153,10 @@ void LogContext::PushScopedTag(const char* key, const char* value)
 
 void LogContext::PopScopedTag(const char* key)
 {
-  if (!key || tls_tags_.Empty()) return;
+  if (!key || tls_tags_.Empty())
+  {
+    return;
+  }
   for (size_t i = tls_tags_.Size(); i-- > 0;)
   {
     if (std::strncmp(tls_tags_[i].key, key, BR_LOG_MAX_TAG_KEY_LEN) == 0)
@@ -159,14 +179,20 @@ void LogContext::FillTags(LogEntry& entry) const
     std::shared_lock<std::shared_mutex> lock(global_mutex_);
     for (const auto& tag : global_tags_)
     {
-      if (count >= BR_LOG_MAX_TAGS) break;
+      if (count >= BR_LOG_MAX_TAGS)
+      {
+        break;
+      }
       entry.tags[count++] = tag;
     }
   }
 
   for (const auto& tag : tls_tags_)
   {
-    if (count >= BR_LOG_MAX_TAGS) break;
+    if (count >= BR_LOG_MAX_TAGS)
+    {
+      break;
+    }
     entry.tags[count++] = tag;
   }
 
@@ -176,11 +202,11 @@ void LogContext::FillTags(LogEntry& entry) const
 void LogContext::FillThreadInfo(LogEntry& entry) const
 {
 #if defined(BR_LOG_PLATFORM_WINDOWS)
-  static const uint32_t process_id = static_cast<uint32_t>(GetCurrentProcessId());
+  static uint32_t process_id = static_cast<uint32_t>(GetCurrentProcessId());
 #elif defined(BR_LOG_PLATFORM_LINUX) || defined(BR_LOG_PLATFORM_MACOS)
-  static const uint32_t process_id = static_cast<uint32_t>(getpid());
+  static uint32_t process_id = static_cast<uint32_t>(getpid());
 #else
-  static const uint32_t process_id = 0;
+  static uint32_t process_id = 0;
 #endif
 
   entry.process_id = process_id;
