@@ -8,3 +8,9 @@ if(BR_LOG_BUILD_TESTS)
 endif()
 
 add_subdirectory(br_logger_core)
+
+option(BR_LOG_BUILD_EXAMPLES "Build examples" OFF)
+
+if(BR_LOG_BUILD_EXAMPLES)
+    add_subdirectory(examples/basic_cpp)
+endif()
