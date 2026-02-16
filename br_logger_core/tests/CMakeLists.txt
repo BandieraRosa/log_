@@ -11,6 +11,7 @@ set(TEST_SOURCES
     test_ring_memory_sink.cpp
     test_rotating_file_sink.cpp
     test_daily_file_sink.cpp
+    test_backend.cpp
     test_logger_integration.cpp
     test_fixed_vector.cpp
     test_timestamp.cpp
