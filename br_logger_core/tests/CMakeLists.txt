@@ -6,6 +6,7 @@ set(TEST_SOURCES
     test_log_context.cpp
     test_pattern_formatter.cpp
     test_json_formatter.cpp
+    test_console_sink.cpp
     test_logger_integration.cpp
     test_fixed_vector.cpp
     test_timestamp.cpp
