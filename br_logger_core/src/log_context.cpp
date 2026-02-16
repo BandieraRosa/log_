@@ -1,6 +1,8 @@
 #include "br_logger/log_context.hpp"
 #include "br_logger/platform.hpp"
 #include <cstring>
+#include <mutex>
+#include <shared_mutex>
 #include <thread>
 
 #if defined(BR_LOG_PLATFORM_LINUX)
@@ -30,7 +32,7 @@ LogContext& LogContext::instance() {
 
 void LogContext::set_global_tag(const char* key, const char* value) {
     if (!key || !value) return;
-    std::lock_guard<std::mutex> lock(global_mutex_);
+    std::unique_lock<std::shared_mutex> lock(global_mutex_);
     for (size_t i = 0; i < global_tags_.size(); ++i) {
         if (std::strncmp(global_tags_[i].key, key, BR_LOG_MAX_TAG_KEY_LEN) == 0) {
             std::strncpy(global_tags_[i].value, value, BR_LOG_MAX_TAG_VAL_LEN - 1);
@@ -49,7 +51,7 @@ void LogContext::set_global_tag(const char* key, const char* value) {
 
 void LogContext::remove_global_tag(const char* key) {
     if (!key) return;
-    std::lock_guard<std::mutex> lock(global_mutex_);
+    std::unique_lock<std::shared_mutex> lock(global_mutex_);
     for (size_t i = 0; i < global_tags_.size(); ++i) {
         if (std::strncmp(global_tags_[i].key, key, BR_LOG_MAX_TAG_KEY_LEN) == 0) {
             size_t last = global_tags_.size() - 1;
@@ -137,7 +139,7 @@ void LogContext::pop_scoped_tag(const char* key) {
 void LogContext::fill_tags(LogEntry& entry) const {
     size_t count = 0;
     {
-        std::lock_guard<std::mutex> lock(global_mutex_);
+        std::shared_lock<std::shared_mutex> lock(global_mutex_);
         for (const auto& tag : global_tags_) {
             if (count >= BR_LOG_MAX_TAGS) break;
             entry.tags[count++] = tag;
@@ -163,8 +165,7 @@ void LogContext::fill_thread_info(LogEntry& entry) const {
 
     entry.process_id = process_id;
     entry.thread_id = get_thread_id();
-    std::strncpy(entry.thread_name, tls_thread_name_, sizeof(entry.thread_name) - 1);
-    entry.thread_name[sizeof(entry.thread_name) - 1] = '\0';
+    std::memcpy(entry.thread_name, tls_thread_name_, sizeof(entry.thread_name));
 }
 
 LogContext::ScopedTag::ScopedTag(const char* key, const char* value) : key_(key) {

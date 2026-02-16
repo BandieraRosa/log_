@@ -2,7 +2,7 @@
 #include "log_entry.hpp"
 #include "fixed_vector.hpp"
 #include <cstdint>
-#include <mutex>
+#include <shared_mutex>
 
 namespace br_logger {
 
@@ -42,7 +42,7 @@ public:
 private:
     LogContext() = default;
 
-    mutable std::mutex global_mutex_;
+    mutable std::shared_mutex global_mutex_;
     FixedVector<LogTag, 16> global_tags_;
 
     char process_name_[64] = {};
