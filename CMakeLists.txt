@@ -9,6 +9,11 @@ endif()
 
 add_subdirectory(br_logger_core)
 
+option(BR_LOG_BUILD_ROS2 "Build ROS2 extension layer" OFF)
+if(BR_LOG_BUILD_ROS2)
+    add_subdirectory(br_logger_ros2)
+endif()
+
 option(BR_LOG_BUILD_EXAMPLES "Build examples" OFF)
 
 if(BR_LOG_BUILD_EXAMPLES)
